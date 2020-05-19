@@ -21,9 +21,13 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
+        // Global vars:
+        double time = 1; // Time at which we are viewing the model.
 
         // Collect travel data and format it.
-        DistanceDataCollector distanceDataCollector = new DistanceDataCollector();
+        Disease disease = new Disease("TestDisease",1.25,5,8); // Random realistic values for debugging purposes.
+        RouteNetwork routeNetwork = new RouteNetwork();
+        DistanceDataCollector distanceDataCollector = new DistanceDataCollector(routeNetwork, disease);
 
         // Create GUI.
         primaryStage.setMaximized(true);
@@ -102,21 +106,35 @@ public class Main extends Application {
         nameVBox.setSpacing(4);
         nameVBox.setPadding(new Insets(2,1,2,1));
 
-        Label cityPopLabel1 = new Label("Selected Cities Population:");
+        Label cityPopLabel1 = new Label("City Population:");
         TextField cityPopTF2 = new TextField("No city selected");
         cityPopTF2.setEditable(false);
         VBox popVBox = new VBox(cityPopLabel1, cityPopTF2);
         popVBox.setSpacing(4);
         popVBox.setPadding(new Insets(2,1,2,1));
 
-        Label effdisLabel1 = new Label("Effective distance from target city:");
-        TextField effdisTF2 = new TextField("No city selected");
-        effdisTF2.setEditable(false);
-        VBox effdisVBox = new VBox(effdisLabel1, effdisTF2);
-        effdisVBox.setSpacing(4);
-        effdisVBox.setPadding(new Insets(2,1,2,1));
+        Label minEffDisLabel1 = new Label("Minimum Effective Distance:");
+        TextField minEffDisTF2 = new TextField("No city selected");
+        minEffDisTF2.setEditable(false);
+        VBox minEffDisVBox = new VBox(minEffDisLabel1, minEffDisTF2);
+        minEffDisVBox.setSpacing(4);
+        minEffDisVBox.setPadding(new Insets(2,1,2,1));
 
-        leftVBox.getChildren().addAll(statusLabel, nameVBox, popVBox, effdisVBox);
+        Label PDPLabel1 = new Label("PDP Value:");
+        TextField PDPTF2 = new TextField("No city selected");
+        PDPTF2.setEditable(false);
+        VBox PDPVBox = new VBox(PDPLabel1, PDPTF2);
+        PDPVBox.setSpacing(4);
+        PDPVBox.setPadding(new Insets(2,1,2,1));
+
+        Label RMSLabel1 = new Label("RMS Value:");
+        TextField RMSTF2 = new TextField("No city selected");
+        RMSTF2.setEditable(false);
+        VBox RMSVBox = new VBox(RMSLabel1, RMSTF2);
+        RMSVBox.setSpacing(4);
+        RMSVBox.setPadding(new Insets(2,1,2,1));
+
+        leftVBox.getChildren().addAll(statusLabel, nameVBox, popVBox, minEffDisVBox, PDPVBox, RMSVBox);
         leftVBox.setPrefWidth(300);
 
         // Alter page
@@ -254,7 +272,7 @@ public class Main extends Application {
 
         // Do some initialising
         GraphicsContext gc = canvas.getGraphicsContext2D();
-        CityNode.initCoords(canvas);
+        CityNode.initCoords(canvas, routeNetwork);
 
         VBox wrapperCenter = new VBox();
         wrapperCenter.getChildren().addAll(pane, wrapperTimerBar);
@@ -264,16 +282,35 @@ public class Main extends Application {
         searchButton.setOnAction(actionEvent ->
         {
             // Find city
-            CityNode city = CityNode.findByName((String) searchComboBox.getValue());
+            CityNode targetCity = CityNode.findByName((String) searchComboBox.getValue());
+            CityNode sourceCity = CityNode.getCenterTarget();
+
+            if(targetCity == null) return; // Error handling
+
+            // Change colour back to normal.
+            if(CityNode.getCurrentlySelectedNode() != null)
+                CityNode.getCurrentlySelectedNode().setPaint(Color.BLACK);
+            if(targetCity != null) {
+                CityNode.setCurrentlySelectedNode(targetCity);
+                targetCity.setPaint(Color.LAWNGREEN);
+                CityNode.setLocMovement(true);
+            }
 
             // Populate the info panes
             searchComboBox.setValue("");
-            cityNameTF2.setText(city.getName());
-            cityPopTF2.setText(String.valueOf(city.getCityPopulation()));
-            effdisTF2.setText(String.valueOf(DistanceDataCollector.getEffDisMatrix().get(CityNode.getCenterTarget().getIndexInMatrix(), city.getIndexInMatrix())));
-            cityNameTF2R.setText(city.getName());
+
+            // Status:
+            cityNameTF2.setText(targetCity.getName());
+            cityPopTF2.setText(String.valueOf(targetCity.getCityPopulation()));
+            minEffDisTF2.setText(String.valueOf(routeNetwork.getMinEffDis(sourceCity, targetCity)));
+            PDPTF2.setText(String.valueOf(routeNetwork.getPDP(sourceCity, targetCity, time)));
+            RMSTF2.setText(String.valueOf(routeNetwork.getRMS(sourceCity, targetCity)));
+
+            // Alter:
+            cityNameTF2R.setText(targetCity.getName());
             setRestrictions2.setText("None"); // TODO need to complete this once mechanics are in
         });
+
         searchComboBox.getEditor().textProperty().addListener(keyEvent -> {
             searchComboBox.requestFocus();
             searchComboBox.getSelectionModel().clearSelection();
@@ -281,7 +318,6 @@ public class Main extends Application {
             List<String> foundCitiesList = CityNode.findLike(text);
             if(foundCitiesList == null) return;
             searchComboBox.getItems().setAll(foundCitiesList);
-
         });
 
         primaryStage.setScene(new Scene(root));
@@ -291,7 +327,7 @@ public class Main extends Application {
         Timeline timeline = new Timeline(
                 new KeyFrame(
                         Duration.seconds(0),
-                        event -> drawSim(canvas.getGraphicsContext2D(), canvas)
+                        event -> drawSim(canvas.getGraphicsContext2D(), canvas, routeNetwork)
                 ),
                 new KeyFrame(Duration.millis(10))
         );
@@ -300,41 +336,37 @@ public class Main extends Application {
 
         // Set resizing scripts which keep the center target centered during window resizing
         canvas.widthProperty().addListener(evt -> {
-            drawSim(gc, canvas);
+            drawSim(gc, canvas, routeNetwork);
             CityNode.offsetAllCoordBy((CityNode.getCenterTarget().getxLoc() - canvas.prefWidth(0)/2)*-1,(CityNode.getCenterTarget().getyLoc() - canvas.prefHeight(0)/2)*-1,true);
 
         });
         canvas.heightProperty().addListener(evt -> {
-            drawSim(gc, canvas);
+            drawSim(gc, canvas, routeNetwork);
             CityNode.offsetAllCoordBy((CityNode.getCenterTarget().getxLoc() - canvas.prefWidth(0)/2)*-1,(CityNode.getCenterTarget().getyLoc() - canvas.prefHeight(0)/2)*-1,true);
         });
     }
 
     // This method will take a list of all nodes, calculate their position, and then draw them with appropriate colouring.
-    public void drawSim(GraphicsContext gc, ResizableCanvas canvas) {
+    public void drawSim(GraphicsContext gc, ResizableCanvas canvas, RouteNetwork routeNetwork) {
         try {
-            // Clear canvas
-            //gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+            // Clear canvas.
             gc.setFill(Color.valueOf("#F4BD98"));
             gc.fillRect(0,0, canvas.getWidth(), canvas.getHeight());
             CityNode centerTarget = CityNode.getCenterTarget();
 
-            if (centerTarget == null) return; // If no target is selected, don't draw anything
+            if (centerTarget == null) return; // If no target is selected, don't draw anything.
 
-            for (int i = 0; i < CityNode.numOfNodes(); i++) // For each CityNode we have
+            for (CityNode node : CityNode.getCityNodes()) // For each CityNode we have.
             {
-                CityNode node = CityNode.get(i);
 
-                if (node.getIndexInMatrix() == centerTarget.getIndexInMatrix()) continue; // Don't handle the center node here
-
-                if (DistanceDataCollector.getEffDisMatrix().get(CityNode.getCenterTarget().getIndexInMatrix(), CityNode.get(i).getIndexInMatrix()) == -1)
-                    continue; // If there is infinite distance between the two cities, don't draw it
+                if (node.getName().equals(centerTarget.getName())) continue; // Don't handle the center node here.
+                if(!node.isARouteTarget()) continue; // If no flights end at this node from source.
 
                 gc.setFill(node.getPaint());
                 gc.fillOval(node.getxLoc() - node.getSize() / 2, node.getyLoc() - node.getSize() / 2, node.getSize(), node.getSize());
             }
 
-            // Draw the center node
+            // Draw the center node.
             gc.setFill(centerTarget.getPaint());
             gc.fillOval(centerTarget.getxLoc() - centerTarget.getSize() / 2, centerTarget.getyLoc() - centerTarget.getSize() / 2, centerTarget.getSize(), centerTarget.getSize());
         }catch (Exception ex)

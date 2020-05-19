@@ -3,7 +3,6 @@ package sample;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -14,12 +13,13 @@ public class CityNode {
     private static List<CityNode> cityNodeList = new ArrayList<>();
     private static CityNode centerTarget; // The node that the eff dis is in ref to
     private static CityNode selectedTarget; // The currently selected node
-    private static double vectorLengthScalar = 40;
-    private static double vectorLengthAdder = -7;
+    private static double vectorLengthScalar = 30;
+    private static double vectorLengthAdder = -10;
     private static Boolean initialised = false;
     private static double mouseInitialX;
     private static double mouseInitialY;
     private static Boolean locMovement = false; // This tells us if an update to any node has occurred and that it needs to be redrawn.
+    private static CityNode currentlySelectedNode;
 
     // Global vars.
     private String name;
@@ -29,17 +29,62 @@ public class CityNode {
     private double yLoc = 0;
     private double size = 10;
     private Paint paint = Color.BLACK;
-    private double r2;
-    private double theta2;
+    private Disease disease;
+    private Boolean isARouteTarget = false;
 
     // Constructor.
-    public CityNode(String name, int index, int cityPopulation)
+    public CityNode(String name, int index, int cityPopulation, Disease disease)
     {
         this.name = name;
         indexInMatrix = index;
         this.cityPopulation = cityPopulation;
         cityNodeList.add(this);
+        this.disease = disease;
+    }
 
+    // Returns the case incidence in this particular city.
+    // Based on infection rate, recovery rate and time.
+    // Returns -1 if parameters are not specified.
+    // C(t) = alpha*exp(alpha*t)*exp(-beta*time)*theta(t)
+    public double getCaseIncidenceEqn1(int time)
+    {
+        // I(t)
+        double infectionRate = disease.getGrowthRate() * Math.exp(disease.getGrowthRate() * time);
+
+        // R(t)
+        double recoveryRate = Math.exp(-1 * disease.getRecoveryRate() * time);
+
+        // C(t)
+        double caseIncidence = infectionRate * recoveryRate;
+
+        // Heavyside fn of time: theta(t)
+        if(time < 0) caseIncidence = 0;
+
+        return caseIncidence;
+    }
+
+    public double getCaseIncidenceEqn2(int time)
+    {
+        double equateAt = 0; // Current time of the integral loop.
+        double caseIncidence = 0; // Number of active cases.
+        double stepSize = 1; // Amount to increase equateAt by, per loop.  Decrease for more accuracy.
+        double a0 = disease.getGrowthRate(); // Initial infection rate
+        double k = 0; // k*a0 is the final infection rate; k is a scalar (0 value is good -> no infections).
+        double q = 8; // Rate at which a0 decreases to k*a0.
+        double beta = disease.getRecoveryRate(); // Recovery rate.
+        double aOfT = a0*((1-k)*Math.exp(-1*q*time) + k);
+
+        // This loop is equivalent to an approx. of an integral on [0, time] range.
+        for(equateAt = 0; equateAt < time; equateAt += stepSize)
+        {
+            caseIncidence += aOfT*Math.exp(aOfT*(time - beta*(equateAt - time)));
+        }
+
+        // Theta component:
+        if(caseIncidence <= 1) // 1 is the epsilon value, which is a threshold implying eradication of the disease.
+            caseIncidence = 0;
+
+        return caseIncidence;
     }
 
     // Getters and Setters
@@ -51,6 +96,14 @@ public class CityNode {
 
     public double getxLoc() {
         return xLoc;
+    }
+
+    public Boolean isARouteTarget() {
+        return isARouteTarget;
+    }
+
+    public void setIsARouteTarget(Boolean ARouteTarget) {
+        isARouteTarget = ARouteTarget;
     }
 
     public void setxLoc(double xLoc) {
@@ -97,12 +150,26 @@ public class CityNode {
     }
 
     // Static methods
+
+
+    public static CityNode getCurrentlySelectedNode() {
+        return currentlySelectedNode;
+    }
+
+    public static void setCurrentlySelectedNode(CityNode currentlySelectedNode) {
+        CityNode.currentlySelectedNode = currentlySelectedNode;
+    }
+
     public static CityNode get(int index) {
         return cityNodeList.get(index);
     }
 
     public static void set(int index, CityNode node) {
         CityNode.cityNodeList.set(index, node);
+    }
+
+    public static List<CityNode> getCityNodes() {
+        return cityNodeList;
     }
 
     public static double getVectorLengthAdder() {
@@ -183,6 +250,7 @@ public class CityNode {
         }
         for(CityNode node : cityNodeList)
         {
+            if(node.getIndexInMatrix() == centerTarget.getIndexInMatrix()) continue;
             node.setxLoc(node.getxLoc() + x);
             node.setyLoc(node.getyLoc() + y);
         }
@@ -197,7 +265,7 @@ public class CityNode {
     // Call this method after all city nodes have been created and their initial coordinates can be calculated
     // This method initialises the city node coordinates, spreading them out randomly and drawing the distance from
     // the center with respect to the effective distance.  Distance is exaggerated by static variables.
-    public static void initCoords(Canvas canvas)
+    public static void initCoords(Canvas canvas, RouteNetwork network)
     {
         Random rand = new Random();
 
@@ -206,8 +274,9 @@ public class CityNode {
 
         for(CityNode node : cityNodeList)
         {
-            if(node.indexInMatrix == getCenterTarget().indexInMatrix) continue;
-            double r = (DistanceDataCollector.getEffDisMatrix().get(CityNode.getCenterTarget().getIndexInMatrix(), node.indexInMatrix) + vectorLengthAdder)*vectorLengthScalar; // Known variable.  Final length of vector.
+            if(node.name.equals(getCenterTarget().getName())) continue;
+            if(!node.isARouteTarget) continue;
+            double r = (network.getMinEffDis(CityNode.getCenterTarget(), node) + vectorLengthAdder)*vectorLengthScalar; // Known variable.  Final length of vector.
             double theta = rand.nextDouble()*360; // Known variable.  Angle of vector.
             double x; // Unknown variable. x location.
             double y; // Unknown variable. y Location.
@@ -220,20 +289,16 @@ public class CityNode {
             x = Math.sqrt((r*r) - (y*y));
 
             // Adjust positives and negatives according to the angle
-            if(theta < 90)
-            {
+            if(theta < 90) {
                 y *= -1;
                 x *= 1;
-            }else if(theta < 180)
-            {
+            }else if(theta < 180) {
                 y *= -1;
                 x *= -1;
-            }else if(theta < 270)
-            {
+            }else if(theta < 270) {
                 y *= 1;
                 x *= -1;
-            }else if(theta <= 360)
-            {
+            }else if(theta <= 360) {
                 y *= 1;
                 x *= 1;
             }
@@ -245,11 +310,6 @@ public class CityNode {
             // Set coords.
             node.setxLoc(x);
             node.setyLoc(y);
-
-            // Implies infinite eff distance
-            if(node.getxLoc() ==0 && node.getyLoc()==0)
-                DistanceDataCollector.getEffDisMatrix().set(CityNode.getCenterTarget().getIndexInMatrix(), node.indexInMatrix, -1);
-
         }
         centerTarget.setxLoc(centerTargetX);
         centerTarget.setyLoc(centerTargetY);
@@ -274,14 +334,15 @@ public class CityNode {
     }
 
     //Returns a list of city nodes containing the text in their name property.
-    //@param text: The text to look for city nodes containing in their name properties.
+    //@param text: The text to look for city nodes containing (ignoreCase) in their name properties.
     public static List<String> findLike(String text)
     {
         List<String> returnList = new ArrayList<>();
         if(text==null) return null;
         for(int i = 0; i < cityNodeList.size(); i++)
         {
-            if(cityNodeList.get(i).getName().compareToIgnoreCase(text) == 0)
+            if(cityNodeList.get(i).getIndexInMatrix() == centerTarget.getIndexInMatrix()) continue; // Skip the target city
+            if(cityNodeList.get(i).getName().toLowerCase().contains(text.toLowerCase())) // Ignore case
             {
                 returnList.add(cityNodeList.get(i).getName());
             }
