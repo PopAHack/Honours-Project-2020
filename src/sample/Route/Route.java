@@ -1,4 +1,7 @@
-package sample;
+package sample.Route;
+
+import sample.CityNode;
+import sample.Disease;
 
 public abstract class Route {
     private Disease disease;

@@ -3,6 +3,8 @@ package sample;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
+import sample.RouteNetwork.RouteNetwork;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -23,7 +25,6 @@ public class CityNode {
 
     // Global vars.
     private String name;
-    private int indexInMatrix;
     private double cityPopulation;
     private double xLoc = 0;
     private double yLoc = 0;
@@ -33,10 +34,10 @@ public class CityNode {
     private Boolean isARouteTarget = false;
 
     // Constructor.
-    public CityNode(String name, int index, int cityPopulation, Disease disease)
+    public CityNode(String name, int cityPopulation, Disease disease)
     {
         this.name = name;
-        indexInMatrix = index;
+
         this.cityPopulation = cityPopulation;
         cityNodeList.add(this);
         this.disease = disease;
@@ -144,11 +145,6 @@ public class CityNode {
         this.paint = paint;
     }
 
-    public int getIndexInMatrix()
-    {
-        return indexInMatrix;
-    }
-
     // Static methods
 
 
@@ -250,7 +246,7 @@ public class CityNode {
         }
         for(CityNode node : cityNodeList)
         {
-            if(node.getIndexInMatrix() == centerTarget.getIndexInMatrix()) continue;
+            if(node.getName().equals(centerTarget.getName())) continue;
             node.setxLoc(node.getxLoc() + x);
             node.setyLoc(node.getyLoc() + y);
         }
@@ -341,7 +337,7 @@ public class CityNode {
         if(text==null) return null;
         for(int i = 0; i < cityNodeList.size(); i++)
         {
-            if(cityNodeList.get(i).getIndexInMatrix() == centerTarget.getIndexInMatrix()) continue; // Skip the target city
+            if(cityNodeList.get(i).getName().equals(centerTarget.getName())) continue; // Skip the target city
             if(cityNodeList.get(i).getName().toLowerCase().contains(text.toLowerCase())) // Ignore case
             {
                 returnList.add(cityNodeList.get(i).getName());

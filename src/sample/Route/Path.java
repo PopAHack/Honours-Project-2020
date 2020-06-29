@@ -1,4 +1,8 @@
-package sample;
+package sample.Route;
+
+import sample.CityNode;
+import sample.Disease;
+import sample.Route.Route;
 
 public class Path extends Route {
 

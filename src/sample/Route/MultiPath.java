@@ -1,4 +1,9 @@
-package sample;
+package sample.Route;
+
+import sample.CityNode;
+import sample.Disease;
+import sample.Route.Path;
+import sample.Route.Route;
 
 import java.util.List;
 

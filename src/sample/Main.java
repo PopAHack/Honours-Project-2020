@@ -13,17 +13,19 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import sample.RouteNetwork.RouteNetwork;
+
 import java.util.List;
 
 public class Main extends Application {
 
+    private int time = 0;
+
     @Override
     public void start(Stage primaryStage) throws Exception{
-        // Global vars:
-        double time = 1; // Time at which we are viewing the model.
-
         // Collect travel data and format it.
         Disease disease = new Disease("TestDisease",1.25,5,8); // Random realistic values for debugging purposes.
         RouteNetwork routeNetwork = new RouteNetwork();
@@ -134,7 +136,14 @@ public class Main extends Application {
         RMSVBox.setSpacing(4);
         RMSVBox.setPadding(new Insets(2,1,2,1));
 
-        leftVBox.getChildren().addAll(statusLabel, nameVBox, popVBox, minEffDisVBox, PDPVBox, RMSVBox);
+        Label caseIncidenceLabel1 = new Label("caseIncidence Value:");
+        TextField caseIncidenceTF2 = new TextField("No city selected");
+        caseIncidenceTF2.setEditable(false);
+        VBox caseIncidenceVBox = new VBox(caseIncidenceLabel1, caseIncidenceTF2);
+        caseIncidenceVBox.setSpacing(4);
+        caseIncidenceVBox.setPadding(new Insets(2,1,2,1));
+
+        leftVBox.getChildren().addAll(statusLabel, nameVBox, popVBox, minEffDisVBox, PDPVBox, RMSVBox, caseIncidenceVBox);
         leftVBox.setPrefWidth(300);
 
         // Alter page
@@ -185,10 +194,6 @@ public class Main extends Application {
         dayChooseTF.setPrefWidth(40);
         Button dayChooseBt = new Button("Go to");
         sec1.getChildren().addAll(dayLabel,dayChooseTF,dayChooseBt);
-        dayChooseBt.setOnAction((e)->{
-            //TODO: Do day selection here:
-
-        });
 
         // Section 2:
         Label day2Label = new Label("Current day:");
@@ -223,7 +228,7 @@ public class Main extends Application {
         root.setLeft(leftVBox);
         root.setRight(rightVBox);
 
-        // Canvas, everything needed to run the animation
+        // Canvas, everything needed to run the animation.
         Pane pane = new Pane();
         ResizableCanvas canvas = new ResizableCanvas();
 
@@ -278,37 +283,45 @@ public class Main extends Application {
         wrapperCenter.getChildren().addAll(pane, wrapperTimerBar);
         root.setCenter(wrapperCenter);
 
-        // Implement the search bar and corresponding button
-        searchButton.setOnAction(actionEvent ->
-        {
-            // Find city
-            CityNode targetCity = CityNode.findByName((String) searchComboBox.getValue());
-            CityNode sourceCity = CityNode.getCenterTarget();
+        // Implement the time bar and corresponding buttons.
 
-            if(targetCity == null) return; // Error handling
+        // Set a time line to increment time variable.
+        Timeline timelineTimer = new Timeline(
+                new KeyFrame(
+                        Duration.seconds(0),
+                        event -> {
+                            changeTimeBy(1, currentDayTF);
+                            updateInfoPanes(cityNameTF2, cityPopTF2, minEffDisTF2, PDPTF2, RMSTF2, caseIncidenceTF2, searchComboBox, routeNetwork, cityNameTF2R, setRestrictions2);
+                        }
+                ),
+                new KeyFrame(Duration.seconds(1))
+        );
+        timelineTimer.setCycleCount(Timeline.INDEFINITE);
 
-            // Change colour back to normal.
-            if(CityNode.getCurrentlySelectedNode() != null)
-                CityNode.getCurrentlySelectedNode().setPaint(Color.BLACK);
-            if(targetCity != null) {
-                CityNode.setCurrentlySelectedNode(targetCity);
-                targetCity.setPaint(Color.LAWNGREEN);
-                CityNode.setLocMovement(true);
-            }
+        backButton.setOnAction(actionEvent -> {
+            timelineTimer.pause();
+            changeTimeBy(-1, currentDayTF);
+            updateInfoPanes(cityNameTF2, cityPopTF2, minEffDisTF2, PDPTF2, RMSTF2, caseIncidenceTF2, searchComboBox, routeNetwork, cityNameTF2R, setRestrictions2);
+        });
+        forwardButton.setOnAction(actionEvent -> {
+            timelineTimer.pause();
+            changeTimeBy(1, currentDayTF);
+            updateInfoPanes(cityNameTF2, cityPopTF2, minEffDisTF2, PDPTF2, RMSTF2, caseIncidenceTF2, searchComboBox, routeNetwork, cityNameTF2R, setRestrictions2);
+        });
+        pauseButton.setOnAction(actionEvent -> {
+            timelineTimer.pause();
+        });
+        playButton.setOnAction(actionEvent -> {
+            timelineTimer.play();
+        });
+        dayChooseBt.setOnAction(actionEvent -> {
+            timelineTimer.pause();
+            setTime(Integer.valueOf(dayChooseTF.getText()), currentDayTF);
+        });
 
-            // Populate the info panes
-            searchComboBox.setValue("");
-
-            // Status:
-            cityNameTF2.setText(targetCity.getName());
-            cityPopTF2.setText(String.valueOf(targetCity.getCityPopulation()));
-            minEffDisTF2.setText(String.valueOf(routeNetwork.getMinEffDis(sourceCity, targetCity)));
-            PDPTF2.setText(String.valueOf(routeNetwork.getPDP(sourceCity, targetCity, time)));
-            RMSTF2.setText(String.valueOf(routeNetwork.getRMS(sourceCity, targetCity)));
-
-            // Alter:
-            cityNameTF2R.setText(targetCity.getName());
-            setRestrictions2.setText("None"); // TODO need to complete this once mechanics are in
+        // Implement the search bar and corresponding button.
+        searchButton.setOnAction(actionEvent -> {
+            updateInfoPanes(cityNameTF2, cityPopTF2, minEffDisTF2, PDPTF2, RMSTF2, caseIncidenceTF2, searchComboBox, routeNetwork, cityNameTF2R, setRestrictions2);
         });
 
         searchComboBox.getEditor().textProperty().addListener(keyEvent -> {
@@ -324,26 +337,78 @@ public class Main extends Application {
         primaryStage.show();
 
         // Set a Time line to draw the animation in this thread
-        Timeline timeline = new Timeline(
+        Timeline timelineGraphics = new Timeline(
                 new KeyFrame(
                         Duration.seconds(0),
                         event -> drawSim(canvas.getGraphicsContext2D(), canvas, routeNetwork)
                 ),
                 new KeyFrame(Duration.millis(10))
         );
-        timeline.setCycleCount(Timeline.INDEFINITE);
-        timeline.play();
+        timelineGraphics.setCycleCount(Timeline.INDEFINITE);
+        timelineGraphics.play();
 
         // Set resizing scripts which keep the center target centered during window resizing
         canvas.widthProperty().addListener(evt -> {
             drawSim(gc, canvas, routeNetwork);
             CityNode.offsetAllCoordBy((CityNode.getCenterTarget().getxLoc() - canvas.prefWidth(0)/2)*-1,(CityNode.getCenterTarget().getyLoc() - canvas.prefHeight(0)/2)*-1,true);
-
         });
         canvas.heightProperty().addListener(evt -> {
             drawSim(gc, canvas, routeNetwork);
             CityNode.offsetAllCoordBy((CityNode.getCenterTarget().getxLoc() - canvas.prefWidth(0)/2)*-1,(CityNode.getCenterTarget().getyLoc() - canvas.prefHeight(0)/2)*-1,true);
         });
+    }
+
+    // Getters and setters for our global time variable
+    private void changeTimeBy(int timeChange, TextField view) {
+        int timetemp = this.time + timeChange;
+        if(timetemp >= 0)
+        {
+            time += timeChange;
+            view.setText(String.valueOf(time));
+        }
+    }
+    private int getTime() {
+        return time;
+    }
+    private void setTime(int time, TextField view) {
+        if(time >= 0)
+        {
+            this.time = time;
+            view.setText(String.valueOf(this.time));
+        }
+    }
+
+    private void updateInfoPanes(TextField name, TextField pop, TextField effDis, TextField PDP, TextField RMS, TextField CI, ComboBox searchComboBox, RouteNetwork routeNetwork, TextField name2, TextField restrictions)
+    {
+        // Find city
+        CityNode targetCity = CityNode.findByName((String) searchComboBox.getValue());
+        CityNode sourceCity = CityNode.getCenterTarget();
+
+        if(targetCity == null) return; // Error handling.
+
+        // Change colour back to normal.
+        if(CityNode.getCurrentlySelectedNode() != null)
+            CityNode.getCurrentlySelectedNode().setPaint(Color.BLACK);
+        if(targetCity != null) {
+            CityNode.setCurrentlySelectedNode(targetCity);
+            targetCity.setPaint(Color.LAWNGREEN);
+            CityNode.setLocMovement(true);
+        }
+
+        // Populate the info panes.
+        searchComboBox.setValue("");
+
+        // Status:
+        name.setText(targetCity.getName());
+        pop.setText(String.valueOf(targetCity.getCityPopulation()));
+        effDis.setText(String.valueOf(routeNetwork.getMinEffDis(sourceCity, targetCity)));
+        PDP.setText(String.valueOf(routeNetwork.getPDP(sourceCity, targetCity, time)));
+        RMS.setText(String.valueOf(routeNetwork.getRMS(sourceCity, targetCity)));
+        CI.setText(String.valueOf(targetCity.getCaseIncidenceEqn2(time)));
+
+        // Alter:
+        name2.setText(targetCity.getName());
+        restrictions.setText("None"); // TODO need to complete this once mechanics are in
     }
 
     // This method will take a list of all nodes, calculate their position, and then draw them with appropriate colouring.

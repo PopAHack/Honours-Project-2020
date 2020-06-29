@@ -1,12 +1,11 @@
 package sample;
 
 import javafx.scene.paint.Color;
-import no.uib.cipr.matrix.DenseMatrix;
-import no.uib.cipr.matrix.Matrix;
+import sample.Route.MultiPath;
+import sample.Route.Path;
+import sample.RouteNetwork.RouteNetwork;
 
 
-import java.nio.file.AtomicMoveNotSupportedException;
-import java.nio.file.FileSystemNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -33,7 +32,7 @@ public class DistanceDataCollector {
 
             // Make cities
             for(int i = 0; i < numCities; i++) {
-                CityNode cityNode = new CityNode(randNameGenerator(rand), i, (int) (rand.nextGaussian()*10000000 + 40000000), disease);
+                CityNode cityNode = new CityNode(randNameGenerator(rand), (int) (rand.nextGaussian()*10000000 + 40000000), disease);
             }
 
             CityNode.setCenterTarget(CityNode.get(numCities/2));

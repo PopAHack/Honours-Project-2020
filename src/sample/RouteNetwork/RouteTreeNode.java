@@ -1,4 +1,6 @@
-package sample;
+package sample.RouteNetwork;
+
+import sample.Route.Route;
 
 import java.util.ArrayList;
 import java.util.List;
