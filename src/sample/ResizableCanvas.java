@@ -3,7 +3,7 @@ package sample;
 import javafx.scene.canvas.Canvas;
 
 // This is a custom class used for resizing the canvas on window size change.
-class ResizableCanvas extends Canvas {
+public class ResizableCanvas extends Canvas {
 
     @Override
     public boolean isResizable() {

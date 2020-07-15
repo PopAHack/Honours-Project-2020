@@ -4,7 +4,6 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import sample.RouteNetwork.RouteNetwork;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -15,8 +14,8 @@ public class CityNode {
     private static List<CityNode> cityNodeList = new ArrayList<>();
     private static CityNode centerTarget; // The node that the eff dis is in ref to
     private static CityNode selectedTarget; // The currently selected node
-    private static double vectorLengthScalar = 30;
-    private static double vectorLengthAdder = -10;
+    private static double vectorLengthScalar = 28;
+    private static double vectorLengthAdder = -5;
     private static Boolean initialised = false;
     private static double mouseInitialX;
     private static double mouseInitialY;
@@ -47,7 +46,7 @@ public class CityNode {
     // Based on infection rate, recovery rate and time.
     // Returns -1 if parameters are not specified.
     // C(t) = alpha*exp(alpha*t)*exp(-beta*time)*theta(t)
-    public double getCaseIncidenceEqn1(int time)
+    public int getCaseIncidenceEqn1(int time)
     {
         // I(t)
         double infectionRate = disease.getGrowthRate() * Math.exp(disease.getGrowthRate() * time);
@@ -61,17 +60,18 @@ public class CityNode {
         // Heavyside fn of time: theta(t)
         if(time < 0) caseIncidence = 0;
 
-        return caseIncidence;
+        return (int) caseIncidence;
     }
 
-    public double getCaseIncidenceEqn2(int time)
+    // A more thorough equation for calculating case incidence in a population.
+    public int getCaseIncidenceEqn2(int time)
     {
-        double equateAt = 0; // Current time of the integral loop.
+        double equateAt; // Current time of the integral loop.
         double caseIncidence = 0; // Number of active cases.
-        double stepSize = 1; // Amount to increase equateAt by, per loop.  Decrease for more accuracy.
-        double a0 = disease.getGrowthRate(); // Initial infection rate
-        double k = 0; // k*a0 is the final infection rate; k is a scalar (0 value is good -> no infections).
-        double q = 8; // Rate at which a0 decreases to k*a0.
+        double stepSize = 0.1; // Amount to increase equateAt by, per loop.  Decrease for more accuracy.
+        double a0 = disease.getGrowthRate(); // Initial infection rate.
+        double k = 0.00; // k*a0 is the final infection rate; k is a scalar (0 value is good -> no infections).
+        double q = 0.05; // Rate at which a0 decreases to k*a0.
         double beta = disease.getRecoveryRate(); // Recovery rate.
         double aOfT = a0*((1-k)*Math.exp(-1*q*time) + k);
 
@@ -85,7 +85,7 @@ public class CityNode {
         if(caseIncidence <= 1) // 1 is the epsilon value, which is a threshold implying eradication of the disease.
             caseIncidence = 0;
 
-        return caseIncidence;
+        return (int) caseIncidence; // Cast to int, as it is a number of people.
     }
 
     // Getters and Setters

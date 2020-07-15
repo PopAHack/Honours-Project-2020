@@ -33,20 +33,6 @@ public class Path extends Route {
         return effectiveDistance;
     }
 
-    // When called, closes path to further transport distance updates and calculates metrics.
-    public void closeOpenPath() {
-        this.openPath = false;
-        calculateMetrics();
-    }
-
-    // Calculate metrics based on closed path data.
-    private void calculateMetrics() {
-        // Calculate Effective distance.
-        calcEffDis();
-        // Calculate NEAP.
-        calcNEAP();
-    }
-
     // Calculates Effective Distance.
     private void calcEffDis() {
         // Get the flux fraction
@@ -60,19 +46,20 @@ public class Path extends Route {
     }
 
     // Calculates NEAP
-    private void calcNEAP(){
+    private void calcNEAP(int time){
         calcEffDis(); // Get any updated values
 
         // Calc NEAP numerically
         double equatAt = 0;
         double stepSize = 0.1; // Smaller this value, the more accurate.
-        double Tb = disease.getInfectiousTime(); // Infectious time(?).
+        double Tb = time; // Current time of the simulation.
         double lambda = disease.getGrowthRate(); // Spreading rate. TODO MAY BE A PROBLEM HERE
         double NEAP = 0;
 
         // Sum function values for the integral.
         for(equatAt = 0; equatAt <= Tb; equatAt += stepSize)
         {
+            //TODO Mistake here, Tb should be the current time of the simulation?
             double propT = Math.exp(1 - effectiveDistance*lambda*equatAt - (1/lambda)*Math.exp(1 - effectiveDistance + lambda*equatAt));
             if(dayOfArrival < 0) propT = 0; // Heavyside function.
             NEAP += propT;
@@ -87,8 +74,8 @@ public class Path extends Route {
     }
 
     @Override
-    public double getNEAP() {
-        calcNEAP();
+    public double getNEAP(int time) {
+        calcNEAP(time);
         return NEAPValue;
     }
 

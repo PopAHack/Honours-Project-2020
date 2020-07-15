@@ -52,7 +52,6 @@ public class RouteNetwork {
         }
     }
 
-
     // Get the smallest effective distance from all routes
     public double getMinEffDis(CityNode sourceCity, CityNode targetCity) {
         List<Route> routeList = RouteTreeNode.getRouteList(sourceCity.getName() + targetCity.getName());
@@ -69,8 +68,8 @@ public class RouteNetwork {
         }
     }
 
-    // Get the RMS between many routes to the target city
-    public double getRMS(CityNode sourceCity, CityNode targetCity) {
+    // Get the RMS between many routes to the target city.
+    public double getRMS(CityNode sourceCity, CityNode targetCity, int time) {
 
         List<Route> routeList = RouteTreeNode.getRouteList(sourceCity.getName() + targetCity.getName());
         if (routeList == null) return -1; // Error handling, no routes between cities.
@@ -82,9 +81,9 @@ public class RouteNetwork {
             double rms1 = 0;
 
             for (Route route : routeList) {
-                mean1 += route.getNEAP() * route.getDayOfArrival();
-                neapSum += route.getNEAP();
-                rms1 += route.getNEAP() * route.getDayOfArrival() * route.getDayOfArrival();
+                mean1 += route.getNEAP(time) * route.getDayOfArrival();
+                neapSum += route.getNEAP(time);
+                rms1 += route.getNEAP(time) * route.getDayOfArrival() * route.getDayOfArrival();
             }
             mean = mean1 / neapSum;
             neapSum -= mean * mean;
@@ -99,7 +98,7 @@ public class RouteNetwork {
     }
 
     // Returns the PDP between many routes to target city at a particular time.
-    public double getPDP(CityNode sourceCity, CityNode targetCity, double time) {
+    public double getPDP(CityNode sourceCity, CityNode targetCity, int time) {
         double PDP = 0;
         List<Route> routeList = RouteTreeNode.getRouteList(sourceCity.getName() + targetCity.getName());
         if (routeList == null) return -1; // Error handling, no routes between cities.
@@ -107,7 +106,7 @@ public class RouteNetwork {
             // Calculate PDP:
             // Sum
             for (Route route : routeList) { // For each route to the target.
-                PDP += route.getNEAP();
+                PDP += route.getNEAP(time);
             }
             return PDP;
         } catch (Exception ex) {

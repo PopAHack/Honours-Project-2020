@@ -32,7 +32,7 @@ public class DistanceDataCollector {
 
             // Make cities
             for(int i = 0; i < numCities; i++) {
-                CityNode cityNode = new CityNode(randNameGenerator(rand), (int) (rand.nextGaussian()*10000000 + 40000000), disease);
+                CityNode cityNode = new CityNode(randNameGenerator(rand), (int) (rand.nextGaussian()*1000000 + 4000000), disease);
             }
 
             CityNode.setCenterTarget(CityNode.get(numCities/2));
@@ -58,6 +58,8 @@ public class DistanceDataCollector {
             }
 
             // Generate multipaths.
+            // Each multipath only deals with the passengers from source to target.  Passengers heading to
+            // connecting cities on the same flight are considered on different flights (so a new path object for each one).
             for(int i = 0; i < numFlights/2;)
             {
                 int numPaths = rand.nextInt(2) + 2; // Rand uniform distribution between 2-3 flights.
@@ -93,7 +95,7 @@ public class DistanceDataCollector {
                     pathList.add(path);
                 }
 
-                MultiPath multiPath = new MultiPath(pathList, disease);
+                MultiPath multiPath = new MultiPath(pathList, disease, transport);
                 network.addRoute(multiPath);
                 i += numPaths;
                 System.out.println("Added route to network.  Remaining: " + (numFlights/2 - i));
