@@ -18,6 +18,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import sample.CustomPanes.CustomAlterPane;
 import sample.CustomPanes.CustomEffMapPane;
+import sample.CustomPanes.CustomGraphPane;
 import sample.CustomPanes.CustomStatusPane;
 import sample.RouteNetwork.RouteNetwork;
 
@@ -29,14 +30,15 @@ public class Main extends Application {
     private String targetedCityCode = "";
     private CustomAlterPane alterPane = new CustomAlterPane();
     private CustomStatusPane statusPane = new CustomStatusPane();
-    private CustomEffMapPane effMapPane;
+    private CustomEffMapPane effMapPane = new CustomEffMapPane();
+    private CustomGraphPane graphPane = new CustomGraphPane();
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         // Collect travel data and format it.
         Disease disease = new Disease("TestDisease", 1.25, 0.95, 8); // Random realistic values for debugging purposes.
         RouteNetwork routeNetwork = new RouteNetwork();
-        effMapPane = new CustomEffMapPane(routeNetwork);
+
         DistanceDataCollector distanceDataCollector = new DistanceDataCollector(routeNetwork, disease);
 
         // Create GUI.
@@ -58,11 +60,21 @@ public class Main extends Application {
 
         fileButton.getItems().addAll(newMenuItem, saveMenuItem, downloadMenuItem);
 
+        Button effDisMapButton = new Button("EffDis View");
+        effDisMapButton.setOnAction((event -> {
+            root.setCenter(effMapPane);
+        }));
+
+        Button graphButton = new Button("Graph View");
+        graphButton.setOnAction((event -> {
+            root.setCenter(graphPane);
+        }));
+
         Button settingsButton = new Button("Settings");
 
         Button helpButton = new Button("Help");
 
-        upperHBox.getChildren().addAll(fileButton, settingsButton, helpButton);
+        upperHBox.getChildren().addAll(fileButton, effDisMapButton, graphButton, settingsButton, helpButton);
 
         upperVBox.getChildren().add(upperHBox);
 
@@ -158,9 +170,24 @@ public class Main extends Application {
         // Do some initialising
         CityNode.initCoords(effMapPane.getCanvas(), routeNetwork);
 
-        VBox wrapperCenter = new VBox();
-        wrapperCenter.getChildren().addAll(effMapPane, wrapperTimerBar);
-        root.setCenter(wrapperCenter);
+        // Default view on opening.
+        VBox wrapperCenterDefault = new VBox();
+        wrapperCenterDefault.getChildren().addAll(effMapPane, wrapperTimerBar);
+        root.setCenter(wrapperCenterDefault);
+
+        // View on button action.
+        effDisMapButton.setOnAction((event -> {
+            VBox wrapperCenterEffDisMap = new VBox();
+            wrapperCenterEffDisMap.getChildren().addAll(effMapPane, wrapperTimerBar);
+            root.setCenter(wrapperCenterEffDisMap);
+        }));
+
+        // View on button action.
+        graphButton.setOnAction((event -> {
+            VBox wrapperCenterGraph = new VBox();
+            wrapperCenterGraph.getChildren().addAll(graphPane, wrapperTimerBar);
+            root.setCenter(wrapperCenterGraph);
+        }));
 
         // Implement the time bar and corresponding buttons.
 
@@ -238,6 +265,8 @@ public class Main extends Application {
         }
     }
 
+    // This method will update the info panes based on any new information given,
+    // e.g. time changed, city selected, routeNetwork updated.
     private void updateInfoPanes(RouteNetwork routeNetwork, ComboBox searchComboBox)
     {
         // Find city

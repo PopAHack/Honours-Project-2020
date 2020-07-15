@@ -13,12 +13,10 @@ import sample.RouteNetwork.RouteNetwork;
 public class CustomEffMapPane extends Pane {
     // Global vars.
     private ResizableCanvas canvas = new ResizableCanvas();
-    private RouteNetwork routeNetwork;
 
     // Constructor
-    public CustomEffMapPane(RouteNetwork routeNetwork)
+    public CustomEffMapPane()
     {
-        this.routeNetwork = routeNetwork;
         GraphicsContext gc = canvas.getGraphicsContext2D();
         // Canvas, everything needed to run the animation.
 
@@ -60,7 +58,7 @@ public class CustomEffMapPane extends Pane {
         Timeline timelineGraphics = new Timeline(
                 new KeyFrame(
                         Duration.seconds(0),
-                        event -> drawSim(canvas.getGraphicsContext2D(), canvas, routeNetwork)
+                        event -> drawSim(canvas.getGraphicsContext2D(), canvas)
                 ),
                 new KeyFrame(Duration.millis(10))
         );
@@ -69,18 +67,18 @@ public class CustomEffMapPane extends Pane {
 
         // Set resizing scripts which keep the center target centered during window resizing
         canvas.widthProperty().addListener(evt -> {
-            drawSim(gc, canvas, routeNetwork);
+            drawSim(gc, canvas);
             CityNode.offsetAllCoordBy((CityNode.getCenterTarget().getxLoc() - canvas.prefWidth(0)/2)*-1,(CityNode.getCenterTarget().getyLoc() - canvas.prefHeight(0)/2)*-1,true);
         });
         canvas.heightProperty().addListener(evt -> {
-            drawSim(gc, canvas, routeNetwork);
+            drawSim(gc, canvas);
             CityNode.offsetAllCoordBy((CityNode.getCenterTarget().getxLoc() - canvas.prefWidth(0)/2)*-1,(CityNode.getCenterTarget().getyLoc() - canvas.prefHeight(0)/2)*-1,true);
         });
     }
 
     // Methods
     // This method will take a list of all nodes, calculate their position, and then draw them with appropriate colouring.
-    public void drawSim(GraphicsContext gc, ResizableCanvas canvas, RouteNetwork routeNetwork) {
+    public void drawSim(GraphicsContext gc, ResizableCanvas canvas) {
         try {
             // Clear canvas.
             gc.setFill(Color.valueOf("#F4BD98"));
