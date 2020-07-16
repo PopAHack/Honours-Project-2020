@@ -14,7 +14,7 @@ public class CityNode {
     private static List<CityNode> cityNodeList = new ArrayList<>();
     private static CityNode centerTarget; // The node that the eff dis is in ref to
     private static CityNode selectedTarget; // The currently selected node
-    private static double vectorLengthScalar = 28;
+    private static double vectorLengthScalar = 25;
     private static double vectorLengthAdder = -5;
     private static Boolean initialised = false;
     private static double mouseInitialX;
@@ -46,7 +46,7 @@ public class CityNode {
     // Based on infection rate, recovery rate and time.
     // Returns -1 if parameters are not specified.
     // C(t) = alpha*exp(alpha*t)*exp(-beta*time)*theta(t)
-    public int getCaseIncidenceEqn1(int time)
+    public double getCaseIncidenceEqn1(int time)
     {
         // I(t)
         double infectionRate = disease.getGrowthRate() * Math.exp(disease.getGrowthRate() * time);
@@ -60,18 +60,18 @@ public class CityNode {
         // Heavyside fn of time: theta(t)
         if(time < 0) caseIncidence = 0;
 
-        return (int) caseIncidence;
+        return caseIncidence;
     }
 
     // A more thorough equation for calculating case incidence in a population.
-    public int getCaseIncidenceEqn2(int time)
+    public double getCaseIncidenceEqn2(int time)
     {
         double equateAt; // Current time of the integral loop.
         double caseIncidence = 0; // Number of active cases.
         double stepSize = 0.1; // Amount to increase equateAt by, per loop.  Decrease for more accuracy.
         double a0 = disease.getGrowthRate(); // Initial infection rate.
         double k = 0.00; // k*a0 is the final infection rate; k is a scalar (0 value is good -> no infections).
-        double q = 0.05; // Rate at which a0 decreases to k*a0.
+        double q = 0.10; // Rate at which a0 decreases to k*a0.
         double beta = disease.getRecoveryRate(); // Recovery rate.
         double aOfT = a0*((1-k)*Math.exp(-1*q*time) + k);
 
@@ -85,7 +85,7 @@ public class CityNode {
         if(caseIncidence <= 1) // 1 is the epsilon value, which is a threshold implying eradication of the disease.
             caseIncidence = 0;
 
-        return (int) caseIncidence; // Cast to int, as it is a number of people.
+        return caseIncidence; // Cast to int, as it is a number of people.
     }
 
     // Getters and Setters
@@ -232,7 +232,7 @@ public class CityNode {
         CityNode.initialised = initialised;
     }
 
-    // Moves every object in the list by the same amount in x,y space
+    // Moves every object in the list by the same amount in x,y space.
     // If moveCenter is true, it will also move the center node
     // @param x: The distance to move all in the x direction.
     // @param y: The distance to move all in the y direction.
@@ -258,7 +258,7 @@ public class CityNode {
         locMovement=true;
     }
 
-    // Call this method after all city nodes have been created and their initial coordinates can be calculated
+    // Call this method after all city nodes have been created and their initial coordinates can be calculated.
     // This method initialises the city node coordinates, spreading them out randomly and drawing the distance from
     // the center with respect to the effective distance.  Distance is exaggerated by static variables.
     public static void initCoords(Canvas canvas, RouteNetwork network)
@@ -284,7 +284,7 @@ public class CityNode {
             y = Math.sqrt(((r*r)*(Math.tan(theta)*Math.tan(theta))) / (1 + (Math.tan(theta)*Math.tan(theta))));
             x = Math.sqrt((r*r) - (y*y));
 
-            // Adjust positives and negatives according to the angle
+            // Adjust positives and negatives according to the angle.
             if(theta < 90) {
                 y *= -1;
                 x *= 1;
@@ -314,22 +314,22 @@ public class CityNode {
         locMovement = true;
     }
 
-    // Finds a city node by its name attribute
-    // Also looks at the center target
-    // Returns null if city not found
-    // Assumes unique names
-    // @param name: The name of the city node to return
+    // Finds a city node by its name attribute.
+    // Also looks at the center target.
+    // Returns null if city not found.
+    // Assumes unique names.
+    // @param name: The name of the city node to return.
     public static CityNode findByName(String name)
     {
         for(int i =0; i < cityNodeList.size(); i++) {
-            if (cityNodeList.get(i).getName().equals(name))
+            if (cityNodeList.get(i).getName().equalsIgnoreCase(name))
                 return cityNodeList.get(i);
         }
         if(centerTarget.getName().equals(name))return centerTarget;
         return null;
     }
 
-    //Returns a list of city nodes containing the text in their name property.
+    // Returns a list of city nodes containing the text in their name property.
     //@param text: The text to look for city nodes containing (ignoreCase) in their name properties.
     public static List<String> findLike(String text)
     {
@@ -337,10 +337,11 @@ public class CityNode {
         if(text==null) return null;
         for(int i = 0; i < cityNodeList.size(); i++)
         {
-            if(cityNodeList.get(i).getName().equals(centerTarget.getName())) continue; // Skip the target city
-            if(cityNodeList.get(i).getName().toLowerCase().contains(text.toLowerCase())) // Ignore case
+            if(cityNodeList.get(i).getName().equals(centerTarget.getName())) continue; // Skip the target city.
+            if(cityNodeList.get(i).getName().toLowerCase().contains(text.toLowerCase())) // Ignore case.
             {
-                returnList.add(cityNodeList.get(i).getName());
+                if(cityNodeList.get(i).isARouteTarget())
+                    returnList.add(cityNodeList.get(i).getName());
             }
         }
         return returnList;

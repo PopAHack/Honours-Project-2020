@@ -7,6 +7,7 @@ import java.util.List;
 
 public class RouteTreeNode {
     // This class is a custom data structure used to store the 100,000 (approx.) routes used in this program with a multi leafed tree.
+    // Each "level" represents a single character from the 6 letter code identifying each route.
 
     // Static var:
     private static RouteTreeNode root = new RouteTreeNode();
@@ -29,16 +30,17 @@ public class RouteTreeNode {
             String name = route.getSourceCity().getName() + route.getTargetCity().getName();
 
             // Break recursion.
-            if (level == 5) { // Last level
+            if (level == 6) { // Last level.
                 if (this.routeList == null) this.routeList = new ArrayList<>();
                 this.routeList.add(route);
-                this.character = name.charAt(level);
+                this.character = name.charAt(level-1);
                 branches = null;
                 return;
             } else {
-                if (character == null) character = name.charAt(level);
+                if (character == null && level>0) character = name.charAt(level-1); // Initialise the parent node, unless it is the root.
             }
 
+            // Check each branch for the matching character.
             for (RouteTreeNode rtn : branches) {
                 if (rtn.getCharacter().equals(name.charAt(level))) {
                     rtn.addRoute(route, ++level);
@@ -67,7 +69,7 @@ public class RouteTreeNode {
     private List<Route> getRouteList(String routeConcatName, Boolean recursiveMethod)
     {
         try {
-            // If not a leaf node, find next branch
+            // If not a leaf node, find next branch.
             if (branches != null) {
                 for (RouteTreeNode rtn : branches) {
                     if (rtn.getCharacter().equals(routeConcatName.charAt(0))) {

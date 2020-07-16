@@ -31,9 +31,10 @@ public class DistanceDataCollector {
             int numFlights = (int)(rand.nextGaussian()*15000 + 100000); // Average number of flights per day
 
             // Make cities
-            for(int i = 0; i < numCities; i++) {
-                CityNode cityNode = new CityNode(randNameGenerator(rand), (int) (rand.nextGaussian()*1000000 + 4000000), disease);
+            for(int i = 0; i < numCities - 1; i++) {
+                CityNode cityNode = new CityNode(randNameGenerator(rand, false), (int) (rand.nextGaussian()*1000000 + 4000000), disease);
             }
+            CityNode cityNode = new CityNode(randNameGenerator(rand, true), (int) (rand.nextGaussian()*1000000 + 4000000), disease);
 
             CityNode.setCenterTarget(CityNode.get(numCities/2));
             CityNode.getCenterTarget().setPaint(Color.RED);
@@ -45,19 +46,20 @@ public class DistanceDataCollector {
                 int indexT = -1;
                 int indexS = -1;
                 while(indexT < 0 || indexT > numCities - 1 || indexS < 0 || indexS > numCities - 1) {
-                    indexT = (int) (rand.nextGaussian()*350 + 600);
-                    indexS = (int) (rand.nextGaussian()*350 + 600);
+                    indexT = (int) (rand.nextGaussian()*150 + 600);
+                    indexS = (int) (rand.nextGaussian()*30 + 600);
                 }
                 CityNode sourceCity = CityNode.get(indexS);
                 CityNode targetCity = CityNode.get(indexT);
 
                 Path path = new Path(sourceCity, targetCity, rand.nextGaussian()*50 + 120, 1, disease);
+                if(sourceCity.getName().equals(CityNode.getCenterTarget())) targetCity.setIsARouteTarget(true);
+
                 network.addRoute(path);
-                targetCity.setIsARouteTarget(true);
                 System.out.println("Added route to network.  Remaining: " + (numFlights - i));
             }
 
-            // Generate multipaths.
+            // Generate Multipaths.
             // Each multipath only deals with the passengers from source to target.  Passengers heading to
             // connecting cities on the same flight are considered on different flights (so a new path object for each one).
             for(int i = 0; i < numFlights/2;)
@@ -69,11 +71,13 @@ public class DistanceDataCollector {
                 // Get source city.
                 int indexS = -1;
                 while(indexS < 0 || indexS > numCities - 1) {
-                    indexS = (int) (rand.nextGaussian()*350 + 600);
+                    indexS = (int) (rand.nextGaussian()*30 + 600);
                 }
                 CityNode prevCity = CityNode.get(indexS);
                 cityNodes.add(prevCity);
-                double transport = rand.nextGaussian()*50 + 120;
+                double transport = rand.nextGaussian()*25 + 60;
+                Boolean sourceIsCenterTarget = false;
+                if(prevCity.getName().equals(CityNode.getCenterTarget().getName())) sourceIsCenterTarget = true;
 
                 // Generate each path.
                 for(int j = 0; j < numPaths; j++)
@@ -83,7 +87,7 @@ public class DistanceDataCollector {
                         // Get next city.
                         int indexT = -1;
                         while (indexT < 0 || indexT > numCities - 1) {
-                            indexT = (int) (rand.nextGaussian()*350 + 600);
+                            indexT = (int) (rand.nextGaussian()*150 + 600);
                         }
                         nextCity = CityNode.get(indexT);
                     } while(cityNodes.contains(nextCity));
@@ -93,12 +97,19 @@ public class DistanceDataCollector {
                     Path path = new Path(prevCity, nextCity, transport/numPaths,1, disease);
                     prevCity = nextCity;
                     pathList.add(path);
+                    if(j == numPaths - 1 && sourceIsCenterTarget)
+                        nextCity.setIsARouteTarget(true); // Set the last city as a route target.
                 }
 
                 MultiPath multiPath = new MultiPath(pathList, disease, transport);
                 network.addRoute(multiPath);
                 i += numPaths;
-                System.out.println("Added route to network.  Remaining: " + (numFlights/2 - i));
+
+                if((numFlights/2 - i) > 0)
+                    System.out.println("Added route to network.  Remaining: " + (numFlights/2 - i));
+                else
+                    System.out.println("Added route to network.  Remaining: " + 0);
+
             }
         }catch (Exception ex)
         {
@@ -106,14 +117,23 @@ public class DistanceDataCollector {
         }
     }
 
-    // Generates a random three letter code, in same format as airport codes.
-    private String randNameGenerator(Random rand)
+    // Generates a unique random three letter code, in same format as airport codes.
+    private List<String> nameListForNameGenerator = new ArrayList<>();
+    private String randNameGenerator(Random rand, Boolean last)
     {
         String alphabet = "abcdefghijklmnopqrstuvwxyz";
-        String name = "";
-        name += alphabet.toCharArray()[rand.nextInt(26-1)];
-        name += alphabet.toCharArray()[rand.nextInt(26-1)];
-        name += alphabet.toCharArray()[rand.nextInt(26-1)];
+        String name;
+
+        do {
+            name = "";
+            name += alphabet.toCharArray()[rand.nextInt(26 - 1)];
+            name += alphabet.toCharArray()[rand.nextInt(26 - 1)];
+            name += alphabet.toCharArray()[rand.nextInt(26 - 1)];
+        }while(nameListForNameGenerator.contains(name));
+
+        nameListForNameGenerator.add(name);
+        if(last)
+            nameListForNameGenerator.clear(); // Wipe from memory.
         return name.toUpperCase();
     }
 

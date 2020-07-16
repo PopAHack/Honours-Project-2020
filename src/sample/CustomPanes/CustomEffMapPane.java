@@ -89,7 +89,6 @@ public class CustomEffMapPane extends Pane {
 
             for (CityNode node : CityNode.getCityNodes()) // For each CityNode we have.
             {
-
                 if (node.getName().equals(centerTarget.getName())) continue; // Don't handle the center node here.
                 if(!node.isARouteTarget()) continue; // If no flights end at this node from source.
 
