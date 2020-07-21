@@ -1,13 +1,16 @@
 package sample.RouteNetwork;
 
 import sample.CityNode;
+import sample.Disease;
 import sample.Route.MultiPath;
 import sample.Route.Path;
 import sample.Route.Route;
 import sample.RouteNetwork.RouteTreeNode;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class RouteNetwork {
 
@@ -60,15 +63,64 @@ public class RouteNetwork {
         return RouteTreeNode.getTargetsFromSource(sourceCity);
     }
 
-    // Get the smallest effective distance from all routes
+    // Find paths from source to target.
+    public void generateMultipathsForTarget(CityNode target, RouteNetwork routeNetwork) {
+
+        // Here, if we have already calculated the multipaths, simply return and end.
+        List<Route> routeListExisting = getRoutesFrom(target);
+        for (Route route : routeListExisting)
+            if (route instanceof MultiPath)
+                return;
+
+        // Variables.
+        int numMultipaths = 10; // We assume there are 10 paths to target.
+        int numHops = 6; // Assume maximum number of hops is 6.
+        List<MultiPath> multiPathsList = new ArrayList<>();
+        Random rand = new Random(0);
+
+        while (multiPathsList.size() != numMultipaths) { // For each multipath.
+            int numHopsTrue = rand.nextInt(numHops) + 1;
+            CityNode prevCity = CityNode.getCenterTarget();
+            List<Path> pathList = new ArrayList<>();
+            List<CityNode> cityNodeList = new ArrayList<>();
+            cityNodeList.add(CityNode.getCenterTarget());
+
+            // We are going through each hop, randomly selecting the next Path, while not circling or returning to past cities.
+            for (int j = 0; j < numHopsTrue - 1; j++) {
+                List<Route> routeList = routeNetwork.getRoutesFrom(prevCity);
+                Path path = (Path) routeList.get(rand.nextInt(routeList.size() - 1));
+                while (pathList.contains(path) && cityNodeList.contains(path.getTargetCity()))
+                    path = (Path) routeList.get(rand.nextInt(routeList.size() - 1));
+                pathList.add(path);
+                cityNodeList.add(path.getTargetCity());
+                prevCity = pathList.get(pathList.size() - 1).getTargetCity();
+            }
+
+            // On last hop, look for our target city.  If not found in routelist, discard and try again.
+            List<Route> routeList = routeNetwork.getRoutesFrom(prevCity);
+            for (Route route : routeList) {
+                if (route.getTargetCity().equals(target.getName())) {
+                    pathList.add((Path) route);
+                    MultiPath multiPath = new MultiPath(pathList);
+                    routeNetwork.addRoute(multiPath);
+                }
+            }
+        }
+    }
+
+    // Get the smallest effective distance from all routes.
     public double getMinEffDis(CityNode sourceCity, CityNode targetCity) {
         List<Route> routeList = RouteTreeNode.getRouteList(sourceCity.getName() + targetCity.getName());
         if (routeList == null) return -1; // No routes between.
         try {
-            double minEffDis = routeList.get(0).getEffDis();
-            for (Route route : routeList)
-                if (minEffDis > route.getEffDis())
+            double minEffDis = -1;
+            for(Route route : routeList) {
+                if (minEffDis == -1)
                     minEffDis = route.getEffDis();
+                else if (minEffDis > route.getEffDis())
+                    minEffDis = route.getEffDis();
+            }
+
             return minEffDis;
         } catch (Exception ex) {
             System.out.println("Error in getMaxEffDis()");
@@ -79,31 +131,31 @@ public class RouteNetwork {
     // Get the RMS between many routes to the target city.
     // TODO Not working, needs fixing.
     public double getRMS(CityNode sourceCity, CityNode targetCity, int time) {
-
-        List<Route> routeList = RouteTreeNode.getRouteList(sourceCity.getName() + targetCity.getName());
-        if (routeList == null) return -1; // Error handling, no routes between cities.
-        try {
-            double mean;
-            double mean1 = 0;
-            double neapSum = 0;
-            double RMS;
-            double rms1 = 0;
-
-            for (Route route : routeList) {
-                mean1 += route.getNEAP() * route.getDayOfArrival();
-                neapSum += route.getNEAP();
-                rms1 += route.getNEAP() * route.getDayOfArrival() * route.getDayOfArrival();
-            }
-            mean = mean1 / neapSum;
-            neapSum -= mean * mean;
-
-            RMS = Math.sqrt(rms1 / neapSum);
-            return RMS;
-
-        } catch (Exception ex) {
-            System.out.println("Math error during RMS calc.");
-            return -1;
-        }
+        return -1;
+//        List<Route> routeList = RouteTreeNode.getRouteList(sourceCity.getName() + targetCity.getName());
+//        if (routeList == null) return -1; // Error handling, no routes between cities.
+//        try {
+//            double mean;
+//            double mean1 = 0;
+//            double neapSum = 0;
+//            double RMS;
+//            double rms1 = 0;
+//
+//            for (Route route : routeList) {
+//                mean1 += route.getNEAP() * route.getDayOfArrival();
+//                neapSum += route.getNEAP();
+//                rms1 += route.getNEAP() * route.getDayOfArrival() * route.getDayOfArrival();
+//            }
+//            mean = mean1 / neapSum;
+//            neapSum -= mean * mean;
+//
+//            RMS = Math.sqrt(rms1 / neapSum);
+//            return RMS;
+//
+//        } catch (Exception ex) {
+//            System.out.println("Math error during RMS calc.");
+//            return -1;
+//        }
     }
 
     // Returns the PDP between many routes to target city at a particular time.
@@ -114,8 +166,9 @@ public class RouteNetwork {
         try {
             // Calculate PDP:
             for (Route route : routeList) { // For each path.
-                int effdisK = (int) route.getEffDis(); // Get the rounded down effective distance of that path.
-                if (time == effdisK) { // If the current time is equal to the effective distance value.
+
+                int predictedDay = route.getGumbelPrediction(); // Get the rounded down effective distance of that path.
+                if (time == predictedDay) { // If the current time is equal to the effective distance value.
                     PDP = route.getNEAP(); // Then the PDP is equal to the NEAP value at this time.
                 }
             }

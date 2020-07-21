@@ -8,24 +8,19 @@ import sample.Route.Route;
 import java.util.List;
 
 public class MultiPath extends Route {
+    // A multipath is a series (typically 4/5) of CityNodes, linked by existing paths.
 
     // Global vars
     private CityNode sourceCity; // Start city.
     private CityNode targetCity; // End city.
     private List<Path> pathList; // List of paths making up this multipath.
-    private double dayOfArrival = 0;
-    private Disease disease;
-    private double transportDistance; // The number of passengers going from source to target cities.
 
     // Constructor
-    public MultiPath(List<Path> pathList, Disease disease, double transportDistance)
+    public MultiPath(List<Path> pathList)
     {
-        this.disease = disease;
         this.sourceCity = pathList.get(0).getSourceCity(); // Source of first path.
         this.targetCity = pathList.get(pathList.size()-1).getTargetCity(); // Target of last path.
         this.pathList = pathList;
-        this.dayOfArrival = pathList.get(pathList.size()-1).getDayOfArrival(); // Get last paths day of arrival.
-        this.transportDistance = transportDistance;
     }
 
     public String getUniqueMultiPathName()
@@ -44,27 +39,24 @@ public class MultiPath extends Route {
         this.pathList = pathList;
     }
 
+
     @Override
-    public double getEffDis()
+    public int getGumbelPrediction()
     {
-        double effectiveDistance;
+        int pred = 0;
+        for(Path path : pathList)
+            pred += path.getGumbelPrediction();
 
-        // Get the flux fraction
-        double fluxFraction = transportDistance / sourceCity.getCityPopulation();
-        if (fluxFraction == 0 || fluxFraction < 0 || Double.isInfinite(fluxFraction) || Double.isNaN(fluxFraction)) {
-            effectiveDistance = -1; // < 0 implies infinite distance.
-        }else {
-            // Calculate effdis from city I to city J.
-            effectiveDistance = 1 - Math.log(fluxFraction); // Math.log is in base e. Eqn: dm,n = 1 − ln Pm,n.
-        }
-
-        return effectiveDistance;
+        return pred;
     }
 
     @Override
-    public double getDayOfArrival()
+    public double getEffDis()
     {
-        return dayOfArrival;
+        double effdis = 0;
+        for(Path path : pathList)
+            effdis += path.getEffDis();
+        return effdis;
     }
 
     @Override
@@ -86,7 +78,4 @@ public class MultiPath extends Route {
     public CityNode getTargetCity() {
         return targetCity;
     }
-
-
-
 }

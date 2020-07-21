@@ -51,7 +51,7 @@ public class DistanceDataCollector {
                 CityNode sourceCity = CityNode.get(indexS);
                 CityNode targetCity = CityNode.get(indexT);
 
-                Path path = new Path(sourceCity, targetCity, rand.nextGaussian()*50 + 120, 1, disease);
+                Path path = new Path(sourceCity, targetCity, rand.nextGaussian()*50 + 120, disease);
                 if(sourceCity.getName().equals(CityNode.getCenterTarget())) targetCity.setIsARouteTarget(true);
 
                 network.addRoute(path);

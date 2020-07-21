@@ -10,28 +10,20 @@ public class Path extends Route {
     private CityNode sourceCity; // Start city.
     private CityNode targetCity; // End city.
     private double transportDistance; // Transport distance between cities.
-    private double dayOfArrival; // How many hours the plane is traveling for.
     private double NEAPValue; // NEAP.
     private double effectiveDistance; // Effective distance between cities.
     private Boolean openPath = true; // True if city can get transport distance updates.
     private Disease disease;
 
     // Constructor
-    public Path(CityNode sourceCity, CityNode targetCity, double initialTransportDistance, double dayOfArrival, Disease disease) {
+    public Path(CityNode sourceCity, CityNode targetCity, double initialTransportDistance, Disease disease) {
         this.disease = disease;
         this.sourceCity = sourceCity;
         this.targetCity = targetCity;
         this.transportDistance = initialTransportDistance;
-        this.dayOfArrival = dayOfArrival; // Hours
     }
 
-    // Returns the effective distance
-    @Override
-    public double getEffDis()
-    {
-        calcEffDis();
-        return effectiveDistance;
-    }
+
 
     // Calculates Effective Distance.
     private void calcEffDis() {
@@ -52,7 +44,7 @@ public class Path extends Route {
         // Calc NEAP numerically.
         double equatAt;
         double stepSize = 0.1; // Smaller this value, the more accurate.
-        double Tb = disease.getInfectiousTime(); // Get the time taken to recover from the disease.
+        double Tb = disease.getTbTime(); // Get the time taken to complete a wave and have 0 case incidence.
         double lambda = disease.getGrowthRate(); // Spreading rate.
         double NEAP = 0;
 
@@ -66,10 +58,19 @@ public class Path extends Route {
         NEAPValue = NEAP;
     }
 
+    // TODO Get Gumbel prediction.
     @Override
-    public double getDayOfArrival()
+    public int getGumbelPrediction()
     {
-        return dayOfArrival;
+        return -1;
+    }
+
+    // Returns the effective distance
+    @Override
+    public double getEffDis()
+    {
+        calcEffDis();
+        return effectiveDistance;
     }
 
     @Override
@@ -94,9 +95,5 @@ public class Path extends Route {
 
     public void addTransportDistance(double transportDistance) {
         this.transportDistance += transportDistance;
-    }
-
-    public Boolean getOpenPath() {
-        return openPath;
     }
 }

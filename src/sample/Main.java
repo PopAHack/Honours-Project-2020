@@ -7,23 +7,19 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import sample.CustomPanes.CustomAlterPane;
 import sample.CustomPanes.CustomEffMapPane;
 import sample.CustomPanes.CustomGraphPane;
 import sample.CustomPanes.CustomStatusPane;
-import sample.Route.Route;
 import sample.RouteNetwork.RouteNetwork;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Main extends Application {
@@ -34,11 +30,12 @@ public class Main extends Application {
     private CustomStatusPane statusPane = new CustomStatusPane();
     private CustomEffMapPane effMapPane = new CustomEffMapPane();
     private CustomGraphPane graphPane = new CustomGraphPane();
+    Disease disease;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         // Collect travel data and format it.
-        Disease disease = new Disease("TestDisease", 1.25, 0.95, 4); // Random realistic values for debugging purposes.
+        disease = new Disease("TestDisease", 1.25, 0.95, 4); // Random realistic values for debugging purposes.
         RouteNetwork routeNetwork = new RouteNetwork();
 
         DistanceDataCollector distanceDataCollector = new DistanceDataCollector(routeNetwork, disease);
@@ -287,15 +284,7 @@ public class Main extends Application {
         }
 
         // Calculate Multipaths and routing.
-        int numMultipaths = 10; // We assume there are 10 paths to target.
-        int numHops = 6; // Assume maximum number of hops is 6.
-        for(int i = 0; i < numMultipaths; i++)
-        {
-            List<Route> targetsFromSourceList = new ArrayList<>();
-            targetsFromSourceList = routeNetwork.getRoutesFrom(CityNode.getCenterTarget());
-        }
-
-
+        routeNetwork.generateMultipathsForTarget(targetCity, routeNetwork);
 
         // Populate the info panes.
         searchComboBox.setValue("");
