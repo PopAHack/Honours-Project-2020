@@ -20,8 +20,10 @@ import sample.CustomPanes.CustomAlterPane;
 import sample.CustomPanes.CustomEffMapPane;
 import sample.CustomPanes.CustomGraphPane;
 import sample.CustomPanes.CustomStatusPane;
+import sample.Route.Route;
 import sample.RouteNetwork.RouteNetwork;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Main extends Application {
@@ -283,6 +285,17 @@ public class Main extends Application {
             targetCity.setPaint(Color.LAWNGREEN);
             CityNode.setLocMovement(true);
         }
+
+        // Calculate Multipaths and routing.
+        int numMultipaths = 10; // We assume there are 10 paths to target.
+        int numHops = 6; // Assume maximum number of hops is 6.
+        for(int i = 0; i < numMultipaths; i++)
+        {
+            List<Route> targetsFromSourceList = new ArrayList<>();
+            targetsFromSourceList = routeNetwork.getRoutesFrom(CityNode.getCenterTarget());
+        }
+
+
 
         // Populate the info panes.
         searchComboBox.setValue("");

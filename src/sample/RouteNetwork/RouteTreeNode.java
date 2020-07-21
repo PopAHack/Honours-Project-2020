@@ -1,5 +1,6 @@
 package sample.RouteNetwork;
 
+import sample.CityNode;
 import sample.Route.Route;
 
 import java.util.ArrayList;
@@ -19,6 +20,46 @@ public class RouteTreeNode {
 
     // Constructor
     public RouteTreeNode() { }
+
+    // Gets all routes leaving this source city.
+    public static List<Route> getTargetsFromSource(CityNode source)
+    {
+        return root.getTargetsFromSource(source.getName());
+    }
+
+    // Find the source city and call a second recursive method to find all routes leaving this city.
+    public List<Route> getTargetsFromSource(String cityCodeMod)
+    {
+        // Exit condition.
+        if(cityCodeMod == "") {
+            List<Route> routeListReturn = new ArrayList<>();
+            this.getLeafNodeList(routeListReturn);
+            return routeListReturn;
+        }
+
+        // Recursive search.
+        for(RouteTreeNode routeNode : branches )
+            if(routeNode.getCharacter().equals(cityCodeMod.charAt(0)))
+            {
+                return routeNode.getTargetsFromSource(cityCodeMod.substring(1)); // Cut off the first letter, pass along.
+            }
+        return null;
+    }
+
+    // Returns all the branch route lists to the original returnlist.
+    public void getLeafNodeList(List<Route> returnList)
+    {
+        if (branches == null)
+        {
+            for(Route route : this.routeList)
+                returnList.add(route);
+            return;
+        }
+        for(RouteTreeNode route : branches)
+        {
+            route.getLeafNodeList(returnList);
+        }
+    }
 
     public static void addRoute(Route route)
     {

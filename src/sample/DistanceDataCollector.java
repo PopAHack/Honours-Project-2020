@@ -58,56 +58,6 @@ public class DistanceDataCollector {
                 System.out.println("Added route to network.  Remaining: " + (numFlights - i));
             }
 
-            // Generate Multipaths from randomly selected paths that already exist.
-            for(int i = 0; i < numFlights/2;)
-            {
-                int numPaths = rand.nextInt(8) + 2; // Rand uniform distribution between 2-10 paths.
-                List<Path> pathList = new ArrayList<>();
-                List<CityNode> cityNodes = new ArrayList<>();
-
-                // Get source city.
-                int indexS = -1;
-                while(indexS < 0 || indexS > numCities - 1) {
-                    indexS = (int) (rand.nextGaussian()*30 + 600);
-                }
-                CityNode prevCity = CityNode.get(indexS);
-                cityNodes.add(prevCity);
-                double transport = rand.nextGaussian()*25 + 60;
-                Boolean sourceIsCenterTarget = false;
-                if(prevCity.getName().equals(CityNode.getCenterTarget().getName())) sourceIsCenterTarget = true;
-
-                // Generate each path.
-                for(int j = 0; j < numPaths; j++)
-                {
-                    CityNode nextCity;
-                    do {
-                        // Get next city.
-                        int indexT = -1;
-                        while (indexT < 0 || indexT > numCities - 1) {
-                            indexT = (int) (rand.nextGaussian()*150 + 600);
-                        }
-                        nextCity = CityNode.get(indexT);
-                    } while(cityNodes.contains(nextCity));
-
-                    cityNodes.add(nextCity);
-
-                    Path path = new Path(prevCity, nextCity, transport/numPaths,1, disease);
-                    prevCity = nextCity;
-                    pathList.add(path);
-                    if(j == numPaths - 1 && sourceIsCenterTarget)
-                        nextCity.setIsARouteTarget(true); // Set the last city as a route target.
-                }
-
-                MultiPath multiPath = new MultiPath(pathList, disease, transport);
-                network.addRoute(multiPath);
-                i += numPaths;
-
-                if((numFlights/2 - i) > 0)
-                    System.out.println("Added route to network.  Remaining: " + (numFlights/2 - i));
-                else
-                    System.out.println("Added route to network.  Remaining: " + 0);
-
-            }
         }catch (Exception ex)
         {
             System.out.println("Distance data generator:" + ex);

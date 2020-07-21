@@ -6,6 +6,7 @@ import sample.Route.Path;
 import sample.Route.Route;
 import sample.RouteNetwork.RouteTreeNode;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class RouteNetwork {
@@ -50,6 +51,13 @@ public class RouteNetwork {
                 }
             }
         }
+    }
+
+    // Handles the search for each route leaving the source city.
+    public List<Route> getRoutesFrom(CityNode sourceCity)
+    {
+        List<Route> routeList = new ArrayList<>();
+        return RouteTreeNode.getTargetsFromSource(sourceCity);
     }
 
     // Get the smallest effective distance from all routes
