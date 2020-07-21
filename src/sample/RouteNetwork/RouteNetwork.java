@@ -68,17 +68,21 @@ public class RouteNetwork {
 
         // Here, if we have already calculated the multipaths, simply return and end.
         List<Route> routeListExisting = getRoutesFrom(target);
-        for (Route route : routeListExisting)
-            if (route instanceof MultiPath)
-                return;
+        if(routeListExisting != null)
+            for (Route route : routeListExisting)
+                if (route instanceof MultiPath)
+                    return;
 
         // Variables.
+        int numTries = 10000; // A heuristic solution.
         int numMultipaths = 10; // We assume there are 10 paths to target.
         int numHops = 6; // Assume maximum number of hops is 6.
         List<MultiPath> multiPathsList = new ArrayList<>();
         Random rand = new Random(0);
 
-        while (multiPathsList.size() != numMultipaths) { // For each multipath.
+        for(int i = 0; i <numTries; i++) { // For each multipath.
+            if(multiPathsList.size() == numMultipaths) break;
+
             int numHopsTrue = rand.nextInt(numHops) + 1;
             CityNode prevCity = CityNode.getCenterTarget();
             List<Path> pathList = new ArrayList<>();
@@ -88,7 +92,12 @@ public class RouteNetwork {
             // We are going through each hop, randomly selecting the next Path, while not circling or returning to past cities.
             for (int j = 0; j < numHopsTrue - 1; j++) {
                 List<Route> routeList = routeNetwork.getRoutesFrom(prevCity);
-                Path path = (Path) routeList.get(rand.nextInt(routeList.size() - 1));
+                if(routeList == null || routeList.size() == 0)break;
+                Path path;
+                if(routeList.size() == 1)
+                    path = (Path) routeList.get(0);
+                else
+                    path = (Path) routeList.get(rand.nextInt(routeList.size() - 1));
                 while (pathList.contains(path) && cityNodeList.contains(path.getTargetCity()))
                     path = (Path) routeList.get(rand.nextInt(routeList.size() - 1));
                 pathList.add(path);
@@ -98,6 +107,7 @@ public class RouteNetwork {
 
             // On last hop, look for our target city.  If not found in routelist, discard and try again.
             List<Route> routeList = routeNetwork.getRoutesFrom(prevCity);
+            if(routeList == null || routeList.size() == 0) continue;
             for (Route route : routeList) {
                 if (route.getTargetCity().equals(target.getName())) {
                     pathList.add((Path) route);

@@ -31,7 +31,7 @@ public class RouteTreeNode {
     public List<Route> getTargetsFromSource(String cityCodeMod)
     {
         // Exit condition.
-        if(cityCodeMod == "") {
+        if(cityCodeMod.length() == 0) {
             List<Route> routeListReturn = new ArrayList<>();
             this.getLeafNodeList(routeListReturn);
             return routeListReturn;

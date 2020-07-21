@@ -4,6 +4,8 @@ import sample.CityNode;
 import sample.Disease;
 import sample.Route.Route;
 
+import java.util.Random;
+
 public class Path extends Route {
 
     // Global vars
@@ -62,7 +64,10 @@ public class Path extends Route {
     @Override
     public int getGumbelPrediction()
     {
-        return -1;
+        Random rand = new Random();
+        double x = rand.nextDouble();  // Random uniform sample.
+        double prediction = Math.exp(-1*(x+ Math.exp(-1*x))); // Probability density function Gumbel sample.
+        return (int) prediction;
     }
 
     // Returns the effective distance

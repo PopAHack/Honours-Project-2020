@@ -12,8 +12,8 @@ public class CityNode {
 
     // Static properties
     private static List<CityNode> cityNodeList = new ArrayList<>();
-    private static CityNode centerTarget; // The node that the eff dis is in ref to
-    private static CityNode selectedTarget; // The currently selected node
+    private static CityNode centerTarget; // The node that the eff dis is in ref to.
+    private static CityNode selectedTarget; // The currently selected node.
     private static double vectorLengthScalar = 25;
     private static double vectorLengthAdder = -5;
     private static Boolean initialised = false;

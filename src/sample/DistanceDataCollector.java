@@ -36,6 +36,7 @@ public class DistanceDataCollector {
             }
             CityNode cityNode = new CityNode(randNameGenerator(rand, true), (int) (rand.nextGaussian()*1000000 + 4000000), disease);
 
+
             CityNode.setCenterTarget(CityNode.get(numCities/2));
             CityNode.getCenterTarget().setPaint(Color.RED);
 
@@ -45,14 +46,14 @@ public class DistanceDataCollector {
                 int indexT = -1;
                 int indexS = -1;
                 while(indexT < 0 || indexT > numCities - 1 || indexS < 0 || indexS > numCities - 1) {
-                    indexT = (int) (rand.nextGaussian()*150 + 600);
-                    indexS = (int) (rand.nextGaussian()*30 + 600);
+                    indexT = (int) (rand.nextGaussian()*300 + 600);
+                    indexS = (int) (rand.nextGaussian()*300 + 600);
                 }
                 CityNode sourceCity = CityNode.get(indexS);
                 CityNode targetCity = CityNode.get(indexT);
 
                 Path path = new Path(sourceCity, targetCity, rand.nextGaussian()*50 + 120, disease);
-                if(sourceCity.getName().equals(CityNode.getCenterTarget())) targetCity.setIsARouteTarget(true);
+                if(sourceCity.getName().equals(CityNode.getCenterTarget().getName())) targetCity.setIsARouteTarget(true);
 
                 network.addRoute(path);
                 System.out.println("Added route to network.  Remaining: " + (numFlights - i));
