@@ -5,9 +5,9 @@ import sample.Disease;
 
 public abstract class Route {
     private Disease disease;
-    public abstract double getNEAP(int time);
+    public abstract double getNEAP();
     public abstract CityNode getSourceCity();
     public abstract CityNode getTargetCity();
     public abstract double getDayOfArrival();
-    public abstract double getMinEffDis();
+    public abstract double getEffDis();
 }

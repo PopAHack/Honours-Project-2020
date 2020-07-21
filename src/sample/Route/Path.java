@@ -27,7 +27,7 @@ public class Path extends Route {
 
     // Returns the effective distance
     @Override
-    public double getMinEffDis()
+    public double getEffDis()
     {
         calcEffDis();
         return effectiveDistance;
@@ -46,7 +46,7 @@ public class Path extends Route {
     }
 
     // Calculates NEAP
-    private void calcNEAP(int time){
+    private void calcNEAP(){
         calcEffDis(); // Get any updated values.
 
         // Calc NEAP numerically.
@@ -59,7 +59,6 @@ public class Path extends Route {
         // Sum function values for the integral.
         for(equatAt = 0; equatAt <= Tb; equatAt += stepSize)
         {
-            //TODO Mistake here, Tb should be the current time of the simulation?
             double propT = Math.exp(1 - effectiveDistance + lambda*equatAt - (1/lambda)*Math.exp(1 - effectiveDistance + lambda*equatAt));
             if(equatAt < 0) propT = 0; // Apply Heavyside function.
             NEAP += propT;
@@ -74,8 +73,8 @@ public class Path extends Route {
     }
 
     @Override
-    public double getNEAP(int time) {
-        calcNEAP(time);
+    public double getNEAP() {
+        calcNEAP();
         return NEAPValue;
     }
 

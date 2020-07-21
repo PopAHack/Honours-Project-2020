@@ -88,6 +88,21 @@ public class CityNode {
         return caseIncidence; // Cast to int, as it is a number of people.
     }
 
+    // Runs through the case incidence equation, and finds the time that the case incidence is below a threshold.
+    public int getTbTime()
+    {
+        int time = 1;
+        int incrementNum = 1;
+        double threshold = 1;
+        double currentCI;
+        do {
+            currentCI = getCaseIncidenceEqn2(time);
+            time += incrementNum;
+        }
+        while(currentCI > threshold);
+        return time;
+    }
+
     // Getters and Setters
 
     // Get the cities name.

@@ -45,7 +45,7 @@ public class MultiPath extends Route {
     }
 
     @Override
-    public double getMinEffDis()
+    public double getEffDis()
     {
         double effectiveDistance;
 
@@ -58,10 +58,6 @@ public class MultiPath extends Route {
             effectiveDistance = 1 - Math.log(fluxFraction); // Math.log is in base e. Eqn: dm,n = 1 − ln Pm,n.
         }
 
-//        double sumEffDis = 0;
-//        for(Path path : pathList)
-//            sumEffDis += path.getMinEffDis();
-
         return effectiveDistance;
     }
 
@@ -72,10 +68,12 @@ public class MultiPath extends Route {
     }
 
     @Override
-    public double getNEAP(int time) {
+    public double getNEAP() {
         double NEAP = 0;
-        for (Path path : pathList)
-            NEAP += path.getNEAP(time);
+        for (Path path : pathList) {
+            if(NEAP == 0)NEAP = path.getNEAP();
+            else NEAP *= path.getNEAP();
+        }
         return NEAP;
     }
 

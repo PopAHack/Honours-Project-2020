@@ -24,7 +24,7 @@ public class DistanceDataCollector {
             this.disease = disease;
 
             // TODO This is where the flight API would be called, and flights calculated and filtered.
-            // For now, we will randomly generate the data from normal distributions.
+            // For now, we will randomly generate the data from normal distributions.`
 
             Random rand = new Random(seed);
             int numCities = 1200; // This is the number of active international airports.
@@ -39,9 +39,8 @@ public class DistanceDataCollector {
             CityNode.setCenterTarget(CityNode.get(numCities/2));
             CityNode.getCenterTarget().setPaint(Color.RED);
 
-            // Generate paths.
-            // Half are paths, half are multipaths.
-            for(int i = 0; i < numFlights/2; i++)
+            // Generate all single paths from flight data.
+            for(int i = 0; i < numFlights; i++)
             {
                 int indexT = -1;
                 int indexS = -1;
@@ -59,12 +58,10 @@ public class DistanceDataCollector {
                 System.out.println("Added route to network.  Remaining: " + (numFlights - i));
             }
 
-            // Generate Multipaths.
-            // Each multipath only deals with the passengers from source to target.  Passengers heading to
-            // connecting cities on the same flight are considered on different flights (so a new path object for each one).
+            // Generate Multipaths from randomly selected paths that already exist.
             for(int i = 0; i < numFlights/2;)
             {
-                int numPaths = rand.nextInt(2) + 2; // Rand uniform distribution between 2-3 flights.
+                int numPaths = rand.nextInt(8) + 2; // Rand uniform distribution between 2-10 paths.
                 List<Path> pathList = new ArrayList<>();
                 List<CityNode> cityNodes = new ArrayList<>();
 

@@ -57,10 +57,10 @@ public class RouteNetwork {
         List<Route> routeList = RouteTreeNode.getRouteList(sourceCity.getName() + targetCity.getName());
         if (routeList == null) return -1; // No routes between.
         try {
-            double minEffDis = routeList.get(0).getMinEffDis();
+            double minEffDis = routeList.get(0).getEffDis();
             for (Route route : routeList)
-                if (minEffDis > route.getMinEffDis())
-                    minEffDis = route.getMinEffDis();
+                if (minEffDis > route.getEffDis())
+                    minEffDis = route.getEffDis();
             return minEffDis;
         } catch (Exception ex) {
             System.out.println("Error in getMaxEffDis()");
@@ -69,6 +69,7 @@ public class RouteNetwork {
     }
 
     // Get the RMS between many routes to the target city.
+    // TODO Not working, needs fixing.
     public double getRMS(CityNode sourceCity, CityNode targetCity, int time) {
 
         List<Route> routeList = RouteTreeNode.getRouteList(sourceCity.getName() + targetCity.getName());
@@ -81,9 +82,9 @@ public class RouteNetwork {
             double rms1 = 0;
 
             for (Route route : routeList) {
-                mean1 += route.getNEAP(time) * route.getDayOfArrival();
-                neapSum += route.getNEAP(time);
-                rms1 += route.getNEAP(time) * route.getDayOfArrival() * route.getDayOfArrival();
+                mean1 += route.getNEAP() * route.getDayOfArrival();
+                neapSum += route.getNEAP();
+                rms1 += route.getNEAP() * route.getDayOfArrival() * route.getDayOfArrival();
             }
             mean = mean1 / neapSum;
             neapSum -= mean * mean;
@@ -104,9 +105,11 @@ public class RouteNetwork {
         if (routeList == null) return -1; // Error handling, no routes between cities.
         try {
             // Calculate PDP:
-            // Sum
-            for (Route route : routeList) { // For each route to the target.
-                PDP += route.getNEAP(time);
+            for (Route route : routeList) { // For each path.
+                int effdisK = (int) route.getEffDis(); // Get the rounded down effective distance of that path.
+                if (time == effdisK) { // If the current time is equal to the effective distance value.
+                    PDP = route.getNEAP(); // Then the PDP is equal to the NEAP value at this time.
+                }
             }
             return PDP;
         } catch (Exception ex) {
