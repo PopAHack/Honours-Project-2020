@@ -41,9 +41,9 @@ public class MultiPath extends Route {
 
 
     @Override
-    public int getGumbelPrediction()
+    public double getGumbelPrediction()
     {
-        int pred = 0;
+        double pred = 0;
         for(Path path : pathList)
             pred += path.getGumbelPrediction();
 

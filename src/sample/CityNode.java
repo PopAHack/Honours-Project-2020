@@ -49,7 +49,7 @@ public class CityNode {
     public double getCaseIncidenceEqn1(int time)
     {
         // I(t)
-        double infectionRate = disease.getGrowthRate() * Math.exp(disease.getGrowthRate() * time);
+        double infectionRate = disease.getInitialGrowthRate() * Math.exp(disease.getInitialGrowthRate() * time);
 
         // R(t)
         double recoveryRate = Math.exp(-1 * disease.getRecoveryRate() * time);
@@ -68,8 +68,8 @@ public class CityNode {
     {
         double equateAt; // Current time of the integral loop.
         double caseIncidence = 0; // Number of active cases.
-        double stepSize = 0.1; // Amount to increase equateAt by, per loop.  Decrease for more accuracy.
-        double a0 = disease.getGrowthRate(); // Initial infection rate.
+        double stepSize = 0.001; // Amount to increase equateAt by, per loop.  Decrease for more accuracy.
+        double a0 = disease.getInitialGrowthRate(); // Initial infection rate.
         double k = 0.00; // k*a0 is the final infection rate; k is a scalar (0 value is good -> no infections).
         double q = 0.10; // Rate at which a0 decreases to k*a0.
         double beta = disease.getRecoveryRate(); // Recovery rate.
@@ -78,7 +78,7 @@ public class CityNode {
         // This loop is equivalent to an approx. of an integral on [0, time] range.
         for(equateAt = 0; equateAt < time; equateAt += stepSize)
         {
-            caseIncidence += aOfT*Math.exp(aOfT*(time - beta*(equateAt - time)));
+            caseIncidence += a0*((1-k)*Math.exp(-q*equateAt) + k)*Math.exp(a0*((1-k)*Math.exp(-q*equateAt) + k) * equateAt - beta*(time - equateAt));
         }
 
         // Theta component:
@@ -86,21 +86,6 @@ public class CityNode {
             caseIncidence = 0;
 
         return caseIncidence; // Cast to int, as it is a number of people.
-    }
-
-    // Runs through the case incidence equation, and finds the time that the case incidence is below a threshold.
-    public int getTbTime()
-    {
-        int time = 1;
-        int incrementNum = 1;
-        double threshold = 1;
-        double currentCI;
-        do {
-            currentCI = getCaseIncidenceEqn2(time);
-            time += incrementNum;
-        }
-        while(currentCI > threshold);
-        return time;
     }
 
     // Getters and Setters

@@ -32,7 +32,7 @@ public class DistanceDataCollector {
 
             // Make cities
             for(int i = 0; i < numCities - 1; i++) {
-                CityNode cityNode = new CityNode(randNameGenerator(rand, false), (int) (rand.nextGaussian()*1000000 + 4000000), disease);
+                CityNode cityNode = new CityNode(randNameGenerator(rand, false), (int) (rand.nextGaussian()*1000000 + 400000), disease);
             }
             CityNode cityNode = new CityNode(randNameGenerator(rand, true), (int) (rand.nextGaussian()*1000000 + 4000000), disease);
 
@@ -52,7 +52,7 @@ public class DistanceDataCollector {
                 CityNode sourceCity = CityNode.get(indexS);
                 CityNode targetCity = CityNode.get(indexT);
 
-                Path path = new Path(sourceCity, targetCity, rand.nextGaussian()*50 + 120, disease);
+                Path path = new Path(sourceCity, targetCity, rand.nextGaussian()*200 + 50, disease);
                 if(sourceCity.getName().equals(CityNode.getCenterTarget().getName())) targetCity.setIsARouteTarget(true);
 
                 network.addRoute(path);

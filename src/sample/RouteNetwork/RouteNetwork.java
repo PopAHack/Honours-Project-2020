@@ -63,7 +63,7 @@ public class RouteNetwork {
         return RouteTreeNode.getTargetsFromSource(sourceCity);
     }
 
-    // Find paths from source to target.
+    // Find paths from source to target using a variation of local search.
     public void generateMultipathsForTarget(CityNode target, RouteNetwork routeNetwork) {
 
         // Here, if we have already calculated the multipaths, simply return and end.
@@ -75,7 +75,7 @@ public class RouteNetwork {
 
         // Variables.
         int numTries = 10000; // A heuristic solution.
-        int numMultipaths = 10; // We assume there are 10 paths to target.
+        int numMultipaths = 10; // We assume there are less than 10 paths to the target.
         int numHops = 6; // Assume maximum number of hops is 6.
         List<MultiPath> multiPathsList = new ArrayList<>();
         Random rand = new Random(0);
@@ -176,9 +176,8 @@ public class RouteNetwork {
         try {
             // Calculate PDP:
             for (Route route : routeList) { // For each path.
-
-                int predictedDay = route.getGumbelPrediction(); // Get the rounded down effective distance of that path.
-                if (time == predictedDay) { // If the current time is equal to the effective distance value.
+                double predictedDay = route.getGumbelPrediction(); // Get the expected time to arrival.
+                if (time == (int) predictedDay) { // If the current time is equal to the estimated day of arrival.
                     PDP = route.getNEAP(); // Then the PDP is equal to the NEAP value at this time.
                 }
             }
