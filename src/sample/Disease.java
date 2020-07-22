@@ -4,18 +4,13 @@ public class Disease {
     private String name;
     private double growthRate;
     private double recoveryRate;
-    private double infectiousTime;
-
-
     private double q = 0.10; // Rate at which a0 decreases to k*a0.
 
-
     // Static constructor
-    public Disease(String nameI, double growthRateI, double recoveryRateI, double infectiousTimeI) {
+    public Disease(String nameI, double growthRateI, double recoveryRateI) {
         this.name = nameI;
         this.growthRate = growthRateI;
         this.recoveryRate = recoveryRateI;
-        this.infectiousTime = infectiousTimeI;
     }
 
 
@@ -79,9 +74,6 @@ public class Disease {
     }
 
 
-
-
-
     // Getters and Setters.
 
     public String getName() {
@@ -106,13 +98,5 @@ public class Disease {
 
     public void setRecoveryRate(double recoveryRate) {
         this.recoveryRate = recoveryRate;
-    }
-
-    public double getInfectiousTime() {
-        return infectiousTime;
-    }
-
-    public void setInfectiousTime(double infectiousTime) {
-        this.infectiousTime = infectiousTime;
     }
 }

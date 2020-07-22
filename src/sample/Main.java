@@ -35,7 +35,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         // Collect travel data and format it.
-        disease = new Disease("TestDisease", 1.25, 0.95, 8); // Random realistic values for debugging purposes.
+        disease = new Disease("TestDisease", 1.25, 0.95); // Random realistic values for debugging purposes.
         RouteNetwork routeNetwork = new RouteNetwork();
 
         DistanceDataCollector distanceDataCollector = new DistanceDataCollector(routeNetwork, disease);

@@ -62,9 +62,8 @@ public class Path extends Route {
         NEAPValue = propT1 * propT2 * stepSize;
     }
 
-    // TODO Get Gumbel prediction.
     @Override
-    public double getGumbelPrediction()
+    public double getGumbelPrediction() // TOA.
     {
         calcEffDis(); // Get any updated values.
         Random rand = new Random();
@@ -76,8 +75,6 @@ public class Path extends Route {
         double stepSize = 0.001;
         double timeToArrival = 0;
         double norm_fac;
-
-        // Matlab code: norm_fac=1/(sum(exp(1-d+lambda*t-1/lambda*exp(1-d+lambda*t)))*delta_t);
 
         for(time = 0; time < Tb; time += stepSize)
         {
