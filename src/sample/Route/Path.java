@@ -14,7 +14,6 @@ public class Path extends Route {
     private double transportDistance; // Transport distance between cities.
     private double NEAPValue; // NEAP.
     private double effectiveDistance; // Effective distance between cities.
-    private Boolean openPath = true; // True if city can get transport distance updates.
     private Disease disease;
     private double fluxFraction;
 
@@ -26,7 +25,6 @@ public class Path extends Route {
         this.transportDistance = initialTransportDistance;
         fluxFraction = transportDistance / sourceCity.getCityPopulation();
     }
-
 
 
     // Calculates Effective Distance.
@@ -63,12 +61,12 @@ public class Path extends Route {
     }
 
     @Override
-    public double getGumbelPrediction() // TOA.
+    public double getTOAPrediction()
     {
         calcEffDis(); // Get any updated values.
         Random rand = new Random();
 
-        // Calc time numerically.
+        // Calc time numerically using a Gumbel pdf.
         double Tb = disease.getTbTime(); // Get the time taken to complete a wave and have 0 case incidence.
         double lambda = disease.getMeanGrowthRate(); // Returns mean growth rate over life time of disease.
         double time;

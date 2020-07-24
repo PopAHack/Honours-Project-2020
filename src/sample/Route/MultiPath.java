@@ -1,9 +1,6 @@
 package sample.Route;
 
 import sample.CityNode;
-import sample.Disease;
-import sample.Route.Path;
-import sample.Route.Route;
 
 import java.util.List;
 
@@ -41,11 +38,11 @@ public class MultiPath extends Route {
 
 
     @Override
-    public double getGumbelPrediction()
+    public double getTOAPrediction()
     {
         double pred = 0;
         for(Path path : pathList)
-            pred += path.getGumbelPrediction();
+            pred += path.getTOAPrediction();
 
         return pred;
     }

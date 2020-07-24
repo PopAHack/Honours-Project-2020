@@ -1,13 +1,10 @@
 package sample.RouteNetwork;
 
 import sample.CityNode;
-import sample.Disease;
 import sample.Route.MultiPath;
 import sample.Route.Path;
 import sample.Route.Route;
-import sample.RouteNetwork.RouteTreeNode;
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -34,25 +31,28 @@ public class RouteNetwork {
         // Add route transport
         if (route instanceof Path) {
             // Check the routes from source to target for the new route.
-            for (Route multiRoute : routeList) {
-                if (multiRoute instanceof Path) {
-                    // This takes the existing route, adds the additional transport distance to it, and then discards the new route.
-                    ((Path) multiRoute).addTransportDistance(((Path) route).getTransportDistance());
-                    return; // Done.
+            for (Route path : routeList) {
+                if (path instanceof Path) {
+                    if((path.getSourceCity().getName() + path.getTargetCity().getName()).equals(route.getSourceCity().getName() + route.getTargetCity().getName())) {
+                        // This takes the existing route, adds the additional transport distance to it, and then discards the new route.
+                        ((Path) path).addTransportDistance(((Path) route).getTransportDistance());
+                        return; // Done.
+                    } else {
+                        // This adds the new route if it doesn't already exist.
+                        routeList.add(route);
+                    }
                 }
             }
         } else if (route instanceof MultiPath) {
             for (Route multiRoute : routeList) {
-                // If the route already exists
-                if (multiRoute instanceof MultiPath && ((MultiPath) multiRoute).getUniqueMultiPathName().equals(((MultiPath) route).getUniqueMultiPathName())
-                && ((MultiPath) multiRoute).getPathList().size() == ((MultiPath) route).getPathList().size()) {
-                    // Update each paths transport distance in the original multipath.  Discard new route.
-                    for (int i = 0; i < ((MultiPath) multiRoute).getPathList().size(); i++) {
-                        ((MultiPath) multiRoute).getPathList().get(i).addTransportDistance(((MultiPath) route).getPathList().get(i).getTransportDistance());
+                if (multiRoute instanceof MultiPath) {
+                    if (((MultiPath) multiRoute).getUniqueMultiPathName().equals(((MultiPath) route).getUniqueMultiPathName())) {
+                        System.out.println("Error in route add method.  Multipath already exists.");
+                        return;
                     }
-                    return;
                 }
             }
+            routeList.add(route);
         }
     }
 
@@ -63,60 +63,149 @@ public class RouteNetwork {
         return RouteTreeNode.getTargetsFromSource(sourceCity);
     }
 
-    // Find paths from source to target using a variation of local search.
-    public void generateMultipathsForTarget(CityNode target, RouteNetwork routeNetwork) {
 
-        // Here, if we have already calculated the multipaths, simply return and end.
-        List<Route> routeListExisting = getRoutesFrom(target);
-        if(routeListExisting != null)
-            for (Route route : routeListExisting)
-                if (route instanceof MultiPath)
-                    return;
+    // Apply a variation of Dijkstra's algorithm.
+    public void generateMultipathsForTarget(CityNode target, RouteNetwork routeNetwork)
+    {
+        List<Vertix> vertices = new ArrayList<>();
+        List<Vertix> verticesPermanentRecord = new ArrayList<>();
+        Vertix targetVertix = null;
+        int numCities = 1200;
 
-        // Variables.
-        int numTries = 10000; // A heuristic solution.
-        int numMultipaths = 10; // We assume there are less than 10 paths to the target.
-        int numHops = 6; // Assume maximum number of hops is 6.
-        List<MultiPath> multiPathsList = new ArrayList<>();
-        Random rand = new Random(0);
+        // Init vertices.
+        List<CityNode> cityNodeList = CityNode.getCityNodes();
+        for(int i = 0; i < numCities -1; i++)
+        {
+            Vertix vertix = new Vertix(100000, null, cityNodeList.get(i), routeNetwork.getRoutesFrom(cityNodeList.get(i)), null);
+            vertices.add(vertix);
+            verticesPermanentRecord.add(vertix);
+            // Keep the target vertix for later ref.
+            if(cityNodeList.get(i).getName().equals(target.getName()))
+                targetVertix = vertix;
+        }
 
-        for(int i = 0; i <numTries; i++) { // For each multipath.
-            if(multiPathsList.size() == numMultipaths) break;
+        // Set source distance to 0.
+        vertices.add(new Vertix(0, null, CityNode.getCenterTarget(), routeNetwork.getRoutesFrom(CityNode.getCenterTarget()), null));
 
-            int numHopsTrue = rand.nextInt(numHops) + 1;
-            CityNode prevCity = CityNode.getCenterTarget();
-            List<Path> pathList = new ArrayList<>();
-            List<CityNode> cityNodeList = new ArrayList<>();
-            cityNodeList.add(CityNode.getCenterTarget());
-
-            // We are going through each hop, randomly selecting the next Path, while not circling or returning to past cities.
-            for (int j = 0; j < numHopsTrue - 1; j++) {
-                List<Route> routeList = routeNetwork.getRoutesFrom(prevCity);
-                if(routeList == null || routeList.size() == 0)break;
-                Path path;
-                if(routeList.size() == 1)
-                    path = (Path) routeList.get(0);
-                else
-                    path = (Path) routeList.get(rand.nextInt(routeList.size() - 1));
-                while (pathList.contains(path) && cityNodeList.contains(path.getTargetCity()))
-                    path = (Path) routeList.get(rand.nextInt(routeList.size() - 1));
-                pathList.add(path);
-                cityNodeList.add(path.getTargetCity());
-                prevCity = pathList.get(pathList.size() - 1).getTargetCity();
+        while(vertices.size()!=0)
+        {
+            Vertix u = null;
+            for(Vertix vertix : vertices) {
+                if (u == null)
+                    u = vertix;
+                else if (vertix.getDistance() < u.getDistance())
+                    u = vertix;
             }
+            vertices.remove(u);
 
-            // On last hop, look for our target city.  If not found in routelist, discard and try again.
-            List<Route> routeList = routeNetwork.getRoutesFrom(prevCity);
-            if(routeList == null || routeList.size() == 0) continue;
-            for (Route route : routeList) {
-                if (route.getTargetCity().equals(target.getName())) {
-                    pathList.add((Path) route);
-                    MultiPath multiPath = new MultiPath(pathList);
-                    routeNetwork.addRoute(multiPath);
+            if(u.getCity().getName().equals(target.getName())) // Break if we have found the target.
+                break;
+
+            if(u.getRouteList() != null) { // If it is not an end node.
+                for (Route route : u.getRouteList()) {
+                    if (route instanceof Path) {
+                        double alt = u.getDistance() + route.getEffDis();
+                        Vertix v = null;
+                        for (Vertix v1 : vertices) {
+                            if (v1.getCity().getName().equals(route.getTargetCity().getName()))
+                                v = v1;
+                        }
+                        if (v != null && alt < v.getDistance()) {
+                            v.setDistance(alt);
+                            v.setPrevVertix(u);
+                            v.setPathToThisCity((Path) route);
+                        }
+                    }
                 }
             }
         }
+
+        // Now trace back the shortest path.
+        List<Vertix> S = new ArrayList<>();
+        List<Path> pathList = new ArrayList<>();
+        Vertix u = targetVertix;
+        if(u.getPrevVertix() != null || u.getCity().getName().equals(CityNode.getCenterTarget().getName()))
+        {
+            while(u != null)
+            {
+                S.add(0, u);
+                if(u.getPathToThisCity() != null)
+                    pathList.add(0, u.getPathToThisCity());
+                u = u.getPrevVertix();
+            }
+        }
+        System.out.println("Found a shortest path.  Contains: " + pathList.size() + " route(s).");
+        for(Path path : pathList)
+            System.out.print(path.getSourceCity().getName()  + " " + path.getTargetCity().getName() + " ");
+        System.out.println("");
     }
+
+//    // Find paths from source to target using a variation of local search.
+//    public void generateMultipathsForTarget(CityNode target, RouteNetwork routeNetwork) {
+//
+//        // Here, if we have already calculated the multipaths, simply return and end.
+//        List<Route> routeListExisting = getRoutesFrom(target);
+//        if(routeListExisting != null)
+//            for (Route route : routeListExisting)
+//                if (route instanceof MultiPath)
+//                    return;
+//
+//        // Variables.
+//        int numTries = 10000; // A heuristic solution.
+//        int numMultipaths = 10; // We assume there are less than 10 paths to the target.
+//        int numHops = 5; // Assume maximum number of hops is numHops+1.
+//        List<MultiPath> multiPathsList = new ArrayList<>();
+//        Random rand = new Random();
+//
+//        for(int i = 0; i < numTries; i++) { // For each multipath.
+//            if (multiPathsList.size() == numMultipaths) break;
+//
+//            int numHopsTrue = rand.nextInt(numHops + 1) + 1;
+//
+//            CityNode prevCity = CityNode.getCenterTarget();
+//            List<Path> pathList = new ArrayList<>();
+//
+//            List<CityNode> cityNodeList = new ArrayList<>();
+//            cityNodeList.add(CityNode.getCenterTarget());
+//
+//            // We are going through each hop, randomly selecting the next Path, while not circling or returning to past cities.
+//            for (int j = 0; j < numHopsTrue-1; j++) {
+//                List<Route> routeList = routeNetwork.getRoutesFrom(prevCity);
+//                if (routeList == null || routeList.size() == 0) break;
+//                Path path = null;
+//                int randomIndex = rand.nextInt(routeList.size() - 1);
+//                if (routeList.size() == 1 && routeList.get(0) instanceof Path)
+//                    path = (Path) routeList.get(0);
+//                else if(routeList.get(randomIndex) instanceof Path)
+//                    path = (Path) routeList.get(randomIndex);
+//                while (pathList.contains(path) && cityNodeList.contains(path.getTargetCity())) {
+//                    randomIndex = rand.nextInt(routeList.size() - 1);
+//                    path = (Path) routeList.get(randomIndex);
+//                }
+//                pathList.add(path);
+//                cityNodeList.add(path.getTargetCity());
+//                prevCity = path.getTargetCity();
+//            }
+//
+//            // On last hop, look for our target city.  If not found in routelist, discard and try again.
+//            List<Route> routeList = routeNetwork.getRoutesFrom(prevCity);
+//            if (routeList == null || routeList.size() == 0) continue;
+//            for (Route route : routeList) {
+//                if (route instanceof Path && route.getTargetCity().getName().equals(target.getName())) {
+//                    pathList.add((Path) route);
+//                    MultiPath multiPath = new MultiPath(pathList);
+//
+//                    // Here, check if we have already found this multipath.
+//                    for(MultiPath multiPath1 : multiPathsList)
+//                        if(!multiPath1.getUniqueMultiPathName().equals(multiPath.getUniqueMultiPathName())) {
+//                            multiPathsList.add(multiPath);
+//                            routeNetwork.addRoute(multiPath);
+//                        }
+//                }
+//            }
+//        }
+//        System.out.println("Found " + multiPathsList.size() + " path(s).");
+//    }
 
     // Get the smallest effective distance from all routes.
     public double getMinEffDis(CityNode sourceCity, CityNode targetCity) {
@@ -142,30 +231,6 @@ public class RouteNetwork {
     // TODO Not working, needs fixing.
     public double getRMS(CityNode sourceCity, CityNode targetCity, int time) {
         return -1;
-//        List<Route> routeList = RouteTreeNode.getRouteList(sourceCity.getName() + targetCity.getName());
-//        if (routeList == null) return -1; // Error handling, no routes between cities.
-//        try {
-//            double mean;
-//            double mean1 = 0;
-//            double neapSum = 0;
-//            double RMS;
-//            double rms1 = 0;
-//
-//            for (Route route : routeList) {
-//                mean1 += route.getNEAP() * route.getDayOfArrival();
-//                neapSum += route.getNEAP();
-//                rms1 += route.getNEAP() * route.getDayOfArrival() * route.getDayOfArrival();
-//            }
-//            mean = mean1 / neapSum;
-//            neapSum -= mean * mean;
-//
-//            RMS = Math.sqrt(rms1 / neapSum);
-//            return RMS;
-//
-//        } catch (Exception ex) {
-//            System.out.println("Math error during RMS calc.");
-//            return -1;
-//        }
     }
 
     // Returns the PDP between many routes to target city at a particular time.
@@ -176,7 +241,7 @@ public class RouteNetwork {
         try {
             // Calculate PDP:
             for (Route route : routeList) { // For each path.
-                double predictedDay = route.getGumbelPrediction(); // Get the expected time to arrival.
+                double predictedDay = route.getTOAPrediction(); // Get the expected time to arrival.
                 if (time == (int) predictedDay) { // If the current time is equal to the estimated day of arrival.
                     PDP = route.getNEAP(); // Then the PDP is equal to the NEAP value at this time.
                 }
