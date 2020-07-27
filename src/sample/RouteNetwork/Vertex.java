@@ -1,28 +1,33 @@
 package sample.RouteNetwork;
 
-import javafx.scene.layout.Pane;
 import sample.CityNode;
 import sample.Route.Path;
 import sample.Route.Route;
 
 import java.util.List;
 
-public class Vertix {
+public class Vertex {
     // Global Vars
     private double distance;
-    private Vertix prevVertix;
+    private Vertex prevVertex;
     private CityNode city;
     private List<Route> routeList; // Routes leaving this city.
     private Path pathToThisCity;
 
     // Constructor
-    public Vertix(double distance, Vertix prevVertix, CityNode cityNode, List<Route> routeList, Path path)
+    public Vertex(double distance, Vertex prevVertix, CityNode cityNode, List<Route> routeList, Path path)
     {
         this.distance = distance;
-        this.prevVertix = prevVertix;
+        this.prevVertex = prevVertix;
         this.city = cityNode;
         this.routeList = routeList;
         this.pathToThisCity = path;
+    }
+
+    public Vertex copy()
+    {
+        Vertex vertex = new Vertex(distance, prevVertex, this.city, routeList, pathToThisCity);
+        return vertex;
     }
 
     public double getDistance() {
@@ -33,12 +38,12 @@ public class Vertix {
         this.distance = distance;
     }
 
-    public Vertix getPrevVertix() {
-        return prevVertix;
+    public Vertex getPrevVertex() {
+        return prevVertex;
     }
 
-    public void setPrevVertix(Vertix prevVertix) {
-        this.prevVertix = prevVertix;
+    public void setPrevVertex(Vertex prevVertex) {
+        this.prevVertex = prevVertex;
     }
 
     public CityNode getCity() {

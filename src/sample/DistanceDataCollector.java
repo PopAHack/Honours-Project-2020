@@ -45,8 +45,8 @@ public class DistanceDataCollector {
                 int indexT = -1;
                 int indexS = -1;
                 while(indexT < 0 || indexT > numCities - 1 || indexS < 0 || indexS > numCities - 1) {
-                    indexT = (int) (rand.nextGaussian()*30 + 600);
-                    indexS = (int) (rand.nextGaussian()*30 + 600);
+                    indexT = (int) (rand.nextGaussian()*40 + 600);
+                    indexS = (int) (rand.nextGaussian()*40 + 600);
                 }
                 CityNode sourceCity = CityNode.get(indexS);
                 CityNode targetCity = CityNode.get(indexT);
