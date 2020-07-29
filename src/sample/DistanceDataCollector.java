@@ -32,9 +32,9 @@ public class DistanceDataCollector {
 
             // Make cities
             for(int i = 0; i < numCities - 1; i++) {
-                CityNode cityNode = new CityNode(randNameGenerator(rand, false), (int) (rand.nextGaussian()*800000 + 1000000), disease);
+                CityNode cityNode = new CityNode(randNameGenerator(rand, false), (int) (rand.nextGaussian()*80000 + 1000000), disease);
             }
-            CityNode cityNode = new CityNode(randNameGenerator(rand, true), (int) (rand.nextGaussian()*800000 + 1000000), disease);
+            CityNode cityNode = new CityNode(randNameGenerator(rand, true), (int) (rand.nextGaussian()*80000 + 1000000), disease);
 
             CityNode.setCenterTarget(CityNode.get(numCities/2));
             CityNode.getCenterTarget().setPaint(Color.RED);

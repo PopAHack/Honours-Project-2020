@@ -160,10 +160,6 @@ public class CityNode {
         return cityNodeList.get(index);
     }
 
-    public static void set(int index, CityNode node) {
-        CityNode.cityNodeList.set(index, node);
-    }
-
     public static List<CityNode> getCityNodes() {
         return cityNodeList;
     }

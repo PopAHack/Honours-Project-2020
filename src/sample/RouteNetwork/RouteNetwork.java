@@ -65,58 +65,61 @@ public class RouteNetwork {
 
     // Apply a variation of Dijkstra's algorithm.
     public void generateMultipathsForTarget(CityNode target, RouteNetwork routeNetwork) {
+
         // If we have already calculated the paths between these cities, return.
-        List<Route> sampleList = RouteTreeNode.getRouteList(CityNode.getCenterTarget().getName() + target.getName());
-        for (Route route : sampleList)
-            if (route instanceof MultiPath)
+        List<Route> existingRoutesForTarget = RouteTreeNode.getRouteList(CityNode.getCenterTarget().getName() + target.getName());
+            if (existingRoutesForTarget.size()>1)
                 return;
 
         List<Vertex> vertices = new ArrayList<>();
         List<Vertex> verticesPerm = new ArrayList<>();
+
         Vertex targetVertex = null;
-        Vertex targetVertexPerm = null;
-        Vertex sourceVertexPerm = null;
+
         int numCities = 1200;
         int numPaths = 6;
 
         // Init vertices.
         List<CityNode> cityNodeList = CityNode.getCityNodes();
-        for (int i = 0; i < numCities - 1; i++) {
-            Vertex vertex = new Vertex(100000, null, cityNodeList.get(i), routeNetwork.getRoutesFrom(cityNodeList.get(i)), null);
-            Vertex vertexPerm = vertex.copy();
+        for (int i = 0; i < numCities; i++) {
+            if(i == numCities/2) continue; // Skip the source city.
+            Vertex vertex = new Vertex(Double.POSITIVE_INFINITY, null, cityNodeList.get(i), routeNetwork.getRoutesFrom(cityNodeList.get(i)), null);
             vertices.add(vertex);
-            verticesPerm.add(vertexPerm);
+            verticesPerm.add(vertex.copy());
 
             // Keep the target vertex for later ref.
             if (cityNodeList.get(i).getName().equals(target.getName())) {
                 targetVertex = vertex;
-                targetVertexPerm = targetVertex.copy();
             }
         }
 
         // Set source distance to 0.
         Vertex sourceVertex = new Vertex(0, null, CityNode.getCenterTarget(), routeNetwork.getRoutesFrom(CityNode.getCenterTarget()), null);
-        vertices.add(sourceVertex);
-        verticesPerm.add(sourceVertex.copy());
-        sourceVertexPerm = sourceVertex.copy();
+        vertices.add(0, sourceVertex);
+        verticesPerm.add(0, sourceVertex.copy());
 
         for (int k = 0; k < numPaths; k++) {
             if(k != 0)
             {
-                // Re init the vertices list with fresh copies of our vertices.
-                vertices.clear();
-                for(int i = 0; i < numCities - 1; i++)
+                // Redo initiating the vertices list with fresh copies of our vertices.
+                vertices = new ArrayList<>();
+                for(int i = 0; i < numCities; i++) {
                     vertices.add(verticesPerm.get(i).copy());
-                targetVertex = targetVertexPerm.copy();
-                vertices.add(sourceVertexPerm.copy());
+
+                    // Keep the target vertex for later ref.
+                    if (vertices.get(i).getCity().getName().equals(target.getName())) {
+                        targetVertex = vertices.get(i);
+                    }
+                }
             }
 
             while (vertices.size() != 0) {
                 Vertex u = null;
+                // Get vertex with minimum distance.
                 for (Vertex vertex : vertices) {
-                    if (u == null)
+                    if (u == null) {
                         u = vertex;
-                    else if (vertex.getDistance() < u.getDistance())
+                    } else if (vertex.getDistance() < u.getDistance())
                         u = vertex;
                 }
                 vertices.remove(u);
@@ -124,16 +127,13 @@ public class RouteNetwork {
                 if (u.getCity().getName().equals(target.getName())) // Break if we have found the target.
                     break;
 
-                if (u.getRouteList() != null && u.getRouteList().size() != 0) { // If it is not an end node.
-                    for (Route route : u.getRouteList()) {
-                        if (route instanceof Path) {
+                // Find all neighbours of u, still in vertices.
+                if (u.getRouteList() == null) continue; // If this is an end node, stop.
+                for (Route route : u.getRouteList()) {
+                    for (Vertex v : vertices) {
+                        if (route instanceof Path && v.getCity().getName().equals(route.getTargetCity().getName())) {
                             double alt = u.getDistance() + route.getEffDis();
-                            Vertex v = null;
-                            for (Vertex v1 : vertices) {
-                                if (v1.getCity().getName().equals(route.getTargetCity().getName()))
-                                    v = v1;
-                            }
-                            if (v != null && alt < v.getDistance()) {
+                            if (alt < v.getDistance()) {
                                 v.setDistance(alt);
                                 v.setPrevVertex(u);
                                 v.setPathToThisCity((Path) route);
@@ -144,21 +144,21 @@ public class RouteNetwork {
             }
 
             // Now trace back the shortest path.
-            List<Vertex> S = new ArrayList<>();
             List<Path> pathList = new ArrayList<>();
             Vertex u = targetVertex;
             if (u.getPrevVertex() != null || u.getCity().getName().equals(CityNode.getCenterTarget().getName())) {
                 while (u != null) {
-                    S.add(0, u);
                     if (u.getPathToThisCity() != null) {
                         pathList.add(0, u.getPathToThisCity());
 
-                        // Find this path in the perm list, and delete it from future multipath searches.
+                        // Find all routes used
                         for(Vertex v : verticesPerm)
-                            if(v.getCity().getName().equals(u.getPathToThisCity().getSourceCity().getName())) {
+                        {
+                            if(v.getCity().getName().equals(u.getPathToThisCity().getSourceCity().getName()))
+                            {
                                 v.getRouteList().remove(u.getPathToThisCity());
-                                break;
                             }
+                        }
                     }
                     u = u.getPrevVertex();
                 }

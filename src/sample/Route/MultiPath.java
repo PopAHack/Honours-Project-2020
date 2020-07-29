@@ -24,7 +24,7 @@ public class MultiPath extends Route {
     {
         String name = "";
         for(Path path : pathList)
-            name.concat(path.getSourceCity().getName() + path.getTargetCity().getName());
+            name += path.getSourceCity().getName() + path.getTargetCity().getName();
         return name;
     }
 
