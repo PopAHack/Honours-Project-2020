@@ -57,7 +57,6 @@ public class Disease {
         return currentAofT/divideBy;
     }
 
-
     // Runs through the case incidence equation, and finds the time (day) that the case incidence is below a threshold.
     public int getTbTime()
     {
@@ -73,30 +72,12 @@ public class Disease {
         return time;
     }
 
-
     // Getters and Setters.
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public double getInitialGrowthRate() {
         return growthRate;
     }
 
-    public void setInitialGrowthRate(double growthRate) {
-        this.growthRate = growthRate;
-    }
-
     public double getRecoveryRate() {
         return recoveryRate;
-    }
-
-    public void setRecoveryRate(double recoveryRate) {
-        this.recoveryRate = recoveryRate;
     }
 }

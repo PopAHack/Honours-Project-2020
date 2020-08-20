@@ -28,15 +28,6 @@ public class MultiPath extends Route {
         return name;
     }
 
-    public List<Path> getPathList() {
-        return pathList;
-    }
-
-    public void setPathList(List<Path> pathList) {
-        this.pathList = pathList;
-    }
-
-
     @Override
     public double getTOAPrediction()
     {

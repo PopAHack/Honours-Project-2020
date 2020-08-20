@@ -3,7 +3,9 @@ package sample;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
+import sample.Route.Route;
 import sample.RouteNetwork.RouteNetwork;
+import sample.RouteNetwork.RouteTreeNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -21,6 +23,7 @@ public class CityNode {
     private static double mouseInitialY;
     private static Boolean locMovement = false; // This tells us if an update to any node has occurred and that it needs to be redrawn.
     private static CityNode currentlySelectedNode;
+    private static Random rand = new Random();
 
     // Global vars.
     private String name;
@@ -31,6 +34,7 @@ public class CityNode {
     private Paint paint = Color.BLACK;
     private Disease disease;
     private Boolean isARouteTarget = false;
+    private List<Double> CIEqn = new ArrayList<>();
 
     // Constructor.
     public CityNode(String name, int cityPopulation, Disease disease)
@@ -42,29 +46,90 @@ public class CityNode {
         this.disease = disease;
     }
 
-    // Returns the case incidence in this particular city.
-    // Based on infection rate, recovery rate and time.
-    // Returns -1 if parameters are not specified.
-    // C(t) = alpha*exp(alpha*t)*exp(-beta*time)*theta(t)
-    public double getCaseIncidenceEqn1(int time)
+    // Plots the case incidence eqn.
+    public void plotCIGraph()
     {
-        // I(t)
-        double infectionRate = disease.getInitialGrowthRate() * Math.exp(disease.getInitialGrowthRate() * time);
+        List<Route> routeList = RouteTreeNode.getRouteList(CityNode.getCenterTarget().getName() + this.getName());
+        List<Route> routeListUnsorted = new ArrayList<>();
+        List<Route> routeListSorted = new ArrayList<>();
 
-        // R(t)
-        double recoveryRate = Math.exp(-1 * disease.getRecoveryRate() * time);
+        if(routeList == null) return; // No paths to this target, so no infections.
 
-        // C(t)
-        double caseIncidence = infectionRate * recoveryRate;
+        for(Route route : routeList)
+            routeListUnsorted.add(route);
 
-        // Heavyside fn of time: theta(t)
-        if(time < 0) caseIncidence = 0;
+        int size = routeListUnsorted.size();
+        Route smallest;
 
-        return caseIncidence;
+        // Arrange in ascending order.
+        for(int i = 0; i < size; i++)
+        {
+            smallest = routeListUnsorted.get(0);
+            for(Route route : routeListUnsorted)
+            {
+                if(route.getTOAPrediction() < smallest.getTOAPrediction())
+                {
+                    smallest = route;
+                }
+            }
+            routeListSorted.add(smallest);
+            routeListUnsorted.remove(smallest);
+        }
+
+        List<Double> points = new ArrayList<>();
+
+        // For each day that the disease is active.
+        for(int time = 0; time < routeListSorted.get(routeListSorted.size()-1).getTOAPrediction() + disease.getTbTime(); time++)
+        {
+            double caseIncidence = 0;
+            for(Route route : routeListSorted)
+            {
+                if(time < route.getTOAPrediction()) // If the disease has not yet arrived.
+                    continue;
+                caseIncidence += getCaseIncidenceEqn2(time - route.getTOAPrediction());
+            }
+            points.add(caseIncidence);
+        }
+        CIEqn = points;
+    }
+
+    public double[] getArrivalTimes()
+    {
+        List<Route> routeList = RouteTreeNode.getRouteList(CityNode.getCenterTarget().getName() + this.getName());
+        List<Route> routeListUnsorted = new ArrayList<>();
+        List<Route> routeListSorted = new ArrayList<>();
+
+        if(routeList == null) return null; // No paths to this target, so no infections.
+
+        for(Route route : routeList)
+            routeListUnsorted.add(route);
+
+        int size = routeListUnsorted.size();
+        Route smallest;
+
+        // Arrange in ascending order.
+        for(int i = 0; i < size; i++)
+        {
+            smallest = routeListUnsorted.get(0);
+            for(Route route : routeListUnsorted)
+            {
+                if(route.getTOAPrediction() < smallest.getTOAPrediction())
+                {
+                    smallest = route;
+                }
+            }
+            routeListSorted.add(smallest);
+            routeListUnsorted.remove(smallest);
+        }
+
+        double[] returnList = new double[routeListSorted.size()];
+        for(int i = 0; i < returnList.length; i++)
+            returnList[i] = routeListSorted.get(i).getTOAPrediction();
+        return returnList;
     }
 
     // A more thorough equation for calculating case incidence in a population.
-    public double getCaseIncidenceEqn2(int time)
+    public double getCaseIncidenceEqn2(double time)
     {
         double equateAt; // Current time of the integral loop.
         double caseIncidence = 0; // Number of active cases.
@@ -73,7 +138,6 @@ public class CityNode {
         double k = 0.00; // k*a0 is the final infection rate; k is a scalar (0 value is good -> no infections).
         double q = 0.10; // Rate at which a0 decreases to k*a0.
         double beta = disease.getRecoveryRate(); // Recovery rate.
-        double aOfT = a0*((1-k)*Math.exp(-1*q*time) + k);
 
         // This loop is equivalent to an approx. of an integral on [0, time] range.
         for(equateAt = 0; equateAt < time; equateAt += stepSize)
@@ -125,16 +189,8 @@ public class CityNode {
         return cityPopulation;
     }
 
-    public void setCityPopulation(double cityPopulation) {
-        this.cityPopulation = cityPopulation;
-    }
-
     public double getSize() {
         return size;
-    }
-
-    public void setSize(double size) {
-        this.size = size;
     }
 
     public Paint getPaint() {
@@ -145,9 +201,11 @@ public class CityNode {
         this.paint = paint;
     }
 
+    public List<Double> getCIEqn() {
+        return CIEqn;
+    }
+
     // Static methods
-
-
     public static CityNode getCurrentlySelectedNode() {
         return currentlySelectedNode;
     }
@@ -162,18 +220,6 @@ public class CityNode {
 
     public static List<CityNode> getCityNodes() {
         return cityNodeList;
-    }
-
-    public static double getVectorLengthAdder() {
-        return vectorLengthAdder;
-    }
-
-    public static void setVectorLengthAdder(double vectorLengthAdder) {
-        CityNode.vectorLengthAdder = vectorLengthAdder;
-    }
-
-    public static Boolean getLocMovement() {
-        return locMovement;
     }
 
     public static void setLocMovement(Boolean locMovement) {
@@ -196,36 +242,12 @@ public class CityNode {
         CityNode.mouseInitialY = mouseInitialY;
     }
 
-    public static int numOfNodes() {
-        return cityNodeList.size();
-    }
-
     public static CityNode getCenterTarget() {
         return (centerTarget == null) ?  null :  centerTarget;
     }
 
-    public static CityNode getSelectedTarget() {
-        return (selectedTarget == null) ? null : selectedTarget;
-    }
-
-    public static void setSelectedTarget(CityNode node) {
-        selectedTarget = node;
-    }
-
     public static void setCenterTarget(CityNode node){
         centerTarget = node;
-    }
-
-    public static void setVectorLengthScalar(double vectorLengthScalar) {
-        CityNode.vectorLengthScalar = vectorLengthScalar;
-    }
-
-    public static Boolean getInitialised() {
-        return initialised;
-    }
-
-    public static void setInitialised(Boolean initialised) {
-        CityNode.initialised = initialised;
     }
 
     // Moves every object in the list by the same amount in x,y space.
@@ -259,8 +281,6 @@ public class CityNode {
     // the center with respect to the effective distance.  Distance is exaggerated by static variables.
     public static void initCoords(Canvas canvas, RouteNetwork network)
     {
-        Random rand = new Random();
-
         double centerTargetX = canvas.prefWidth(0)/2;
         double centerTargetY = canvas.prefHeight(0)/2;
 

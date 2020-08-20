@@ -2,7 +2,6 @@ package sample.RouteNetwork;
 
 import sample.CityNode;
 import sample.Route.Route;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -131,9 +130,5 @@ public class RouteTreeNode {
 
     public Character getCharacter() {
         return character;
-    }
-
-    public void setCharacter(Character character) {
-        this.character = character;
     }
 }

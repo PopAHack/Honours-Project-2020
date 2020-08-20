@@ -8,7 +8,6 @@ import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import sample.CityNode;
 import sample.ResizableCanvas;
-import sample.RouteNetwork.RouteNetwork;
 
 public class CustomEffMapPane extends Pane {
     // Global vars.
@@ -104,9 +103,6 @@ public class CustomEffMapPane extends Pane {
             System.out.println(ex);
         }
     }
-
-
-
 
     // Getters and Setters.
     public ResizableCanvas getCanvas() {

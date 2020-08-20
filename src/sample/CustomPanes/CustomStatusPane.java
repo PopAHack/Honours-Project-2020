@@ -8,7 +8,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 public class CustomStatusPane extends VBox {
-    // Global Vars.
+    // Global Vars:
     Label statusLabel = new Label("Status Pane");
     Label cityNameLabel1 = new Label("Selected Cities Name:");
     TextField cityNameTF2 = new TextField("No city selected");

@@ -9,10 +9,13 @@ import javafx.util.Duration;
 import sample.CityNode;
 import sample.ResizableCanvas;
 
+import java.util.List;
+
 public class CustomGraphPane extends Pane {
     // Global Vars.
-    ResizableCanvas canvas = new ResizableCanvas();
-    int horizontalInitialDay = 0;
+    private ResizableCanvas canvas = new ResizableCanvas();
+    private int horizontalInitialDay = 0;
+    private int horizontalInitialDayLast = -1;
 
     // Constructor.
     public CustomGraphPane() {
@@ -44,7 +47,7 @@ public class CustomGraphPane extends Pane {
                         Duration.seconds(0),
                         event -> drawCanvas(canvas.getGraphicsContext2D())
                 ),
-                new KeyFrame(Duration.millis(10))
+                new KeyFrame(Duration.millis(50))
         );
         timelineGraphics.setCycleCount(Timeline.INDEFINITE);
         timelineGraphics.play();
@@ -74,7 +77,7 @@ public class CustomGraphPane extends Pane {
             gc.strokeLine(0 + axisOffset, 0, 0 + axisOffset, canvas.getHeight()); // Vert axis.
             gc.strokeLine(0, canvas.getHeight() - axisOffset, canvas.getWidth(), canvas.getHeight() - axisOffset); // Horiz axis.
 
-            // Set the axis values.
+            // Set the vertival axis values.
             if(targetCity != null) {
                 // Set Vertical axis values.
                 int numberOfVertVals = 10;
@@ -103,16 +106,30 @@ public class CustomGraphPane extends Pane {
                 // Now draw the graph.
                 gc.setLineWidth(3);
                 gc.setStroke(Color.RED);
+                List<Double> points = targetCity.getCIEqn();
 
+                for(int i = 1; i < points.size(); i++)
+                {
+                    if((i - 1 - horizontalInitialDay)*incrementWidth + axisOffset < axisOffset) continue;
 
+                    double yVal1 = canvas.getHeight() - axisOffset - ((points.get(i-1)/targetCity.getCityPopulation()) * (canvas.getHeight() - axisOffset));
+                    double yVal2 = canvas.getHeight() - axisOffset - ((points.get(i)/targetCity.getCityPopulation()) * (canvas.getHeight() - axisOffset));
 
+                    gc.strokeLine((i - 1 - horizontalInitialDay)*incrementWidth + axisOffset, yVal1, (i - horizontalInitialDay)*incrementWidth + axisOffset, yVal2);
+                }
+
+                double[] arrivalTimesArray = targetCity.getArrivalTimes();
+                gc.setStroke(Color.LAWNGREEN);
+                gc.setLineWidth(2);
+                for(int i = 0; i < arrivalTimesArray.length; i++)
+                {
+                    if((arrivalTimesArray[i] - horizontalInitialDay)*incrementWidth + axisOffset < axisOffset) continue;
+                    gc.strokeText("W" + (i+1), (arrivalTimesArray[i] - horizontalInitialDay)*incrementWidth + axisOffset, canvas.getHeight() - axisOffset + 20);
+                }
             }
 
         } catch (Exception ex) {
             System.out.println(ex);
         }
     }
-
-    // Getters and Setters.
-
 }

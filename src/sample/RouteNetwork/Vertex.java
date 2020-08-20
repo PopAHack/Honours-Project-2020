@@ -3,7 +3,6 @@ package sample.RouteNetwork;
 import sample.CityNode;
 import sample.Route.Path;
 import sample.Route.Route;
-
 import java.util.List;
 
 public class Vertex {

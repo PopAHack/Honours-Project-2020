@@ -1,7 +1,6 @@
 package sample.Route;
 
 import sample.CityNode;
-import sample.Disease;
 
 public abstract class Route {
     public abstract double getNEAP();

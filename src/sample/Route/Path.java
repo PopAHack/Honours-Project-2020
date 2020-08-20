@@ -2,9 +2,7 @@ package sample.Route;
 
 import sample.CityNode;
 import sample.Disease;
-import sample.Route.Route;
 
-import java.util.Random;
 
 public class Path extends Route {
 
@@ -12,10 +10,11 @@ public class Path extends Route {
     private CityNode sourceCity; // Start city.
     private CityNode targetCity; // End city.
     private double transportDistance; // Transport distance between cities.
-    private double NEAPValue; // NEAP.
+    private double NEAPValue = -1; // NEAP.
     private double effectiveDistance; // Effective distance between cities.
     private Disease disease;
     private double fluxFraction;
+    private double TOA_Prediction = -1;
 
     // Constructor
     public Path(CityNode sourceCity, CityNode targetCity, double initialTransportDistance, Disease disease) {
@@ -24,6 +23,7 @@ public class Path extends Route {
         this.targetCity = targetCity;
         this.transportDistance = initialTransportDistance;
         fluxFraction = transportDistance / sourceCity.getCityPopulation();
+        calcEffDis();
     }
 
 
@@ -41,8 +41,6 @@ public class Path extends Route {
 
     // Calculates NEAP
     private void calcNEAP(){
-        calcEffDis(); // Get any updated values.
-
         // Calc NEAP numerically.
         double equatAt;
         double stepSize = 0.001; // Smaller this value, the more accurate.
@@ -60,12 +58,7 @@ public class Path extends Route {
         NEAPValue = propT1 * propT2 * stepSize;
     }
 
-    @Override
-    public double getTOAPrediction()
-    {
-        calcEffDis(); // Get any updated values.
-        Random rand = new Random();
-
+    private void calcTOA() {
         // Calc time numerically using a Gumbel pdf.
         double Tb = disease.getTbTime(); // Get the time taken to complete a wave and have 0 case incidence.
         double lambda = disease.getMeanGrowthRate(); // Returns mean growth rate over life time of disease.
@@ -74,25 +67,35 @@ public class Path extends Route {
         double timeToArrival = 0;
         double norm_fac;
 
-        for(time = 0; time < Tb; time += stepSize)
-        {
-            timeToArrival += Math.exp(1 - effectiveDistance + lambda*time - (1 / lambda) * Math.exp(1 - effectiveDistance + lambda*time));
+        for (time = 0; time < Tb; time += stepSize) {
+            timeToArrival += Math.exp(1 - effectiveDistance + lambda * time - (1 / lambda) * Math.exp(1 - effectiveDistance + lambda * time));
         }
         norm_fac = 1 / (timeToArrival * stepSize);
 
-        return norm_fac * timeToArrival * stepSize;
+        TOA_Prediction = norm_fac * timeToArrival * stepSize;
+    }
+
+    @Override
+    public double getTOAPrediction() {
+        // If we have already calculated it, return the value.
+        if (TOA_Prediction != -1)
+            return TOA_Prediction;
+        else {
+            calcTOA();
+            return TOA_Prediction;
+        }
     }
 
     // Returns the effective distance
     @Override
     public double getEffDis()
     {
-        calcEffDis();
         return effectiveDistance;
     }
 
     @Override
     public double getNEAP() {
+        if(NEAPValue != -1) return NEAPValue;
         calcNEAP();
         return NEAPValue;
     }

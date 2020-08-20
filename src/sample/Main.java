@@ -19,11 +19,11 @@ import sample.CustomPanes.CustomEffMapPane;
 import sample.CustomPanes.CustomGraphPane;
 import sample.CustomPanes.CustomStatusPane;
 import sample.RouteNetwork.RouteNetwork;
-
 import java.util.List;
 
 public class Main extends Application {
 
+    // Global Vars:
     private int time = 0;
     private String targetedCityCode = "";
     private CustomAlterPane alterPane = new CustomAlterPane();
@@ -39,6 +39,9 @@ public class Main extends Application {
         RouteNetwork routeNetwork = new RouteNetwork();
 
         DistanceDataCollector distanceDataCollector = new DistanceDataCollector(routeNetwork, disease);
+
+        // Do some initialising.
+        CityNode.initCoords(effMapPane.getCanvas(), routeNetwork);
 
         // Create GUI.
         primaryStage.setMaximized(true);
@@ -157,7 +160,7 @@ public class Main extends Application {
         root.setLeft(statusPane);
         root.setRight(alterPane);
 
-        // Colors and backgrounds
+        // Colors and backgrounds.
         upperHBox.setBackground(new Background(new BackgroundFill(Color.valueOf("#F4BD98"), CornerRadii.EMPTY, Insets.EMPTY)));
         String background = "#F2E8DF";
 
@@ -165,9 +168,6 @@ public class Main extends Application {
         statusPane.setBackground(new Background(new BackgroundFill(Color.valueOf(background), CornerRadii.EMPTY, Insets.EMPTY)));
         alterPane.setBackground(new Background(new BackgroundFill(Color.valueOf(background), CornerRadii.EMPTY, Insets.EMPTY)));
         wrapperTimerBar.setBackground(new Background(new BackgroundFill(Color.valueOf(background), CornerRadii.EMPTY, Insets.EMPTY)));
-
-        // Do some initialising
-        CityNode.initCoords(effMapPane.getCanvas(), routeNetwork);
 
         // Default view on opening.
         VBox wrapperCenterDefault = new VBox();
@@ -228,6 +228,10 @@ public class Main extends Application {
         // Implement the search bar and corresponding button.
         searchButton.setOnAction(actionEvent -> {
             targetedCityCode = searchComboBox.getEditor().textProperty().getValue();
+
+            // Calculate Multipaths and routing.
+            routeNetwork.generateMultipathsForTarget(CityNode.findByName(targetedCityCode), routeNetwork);
+            CityNode.findByName(targetedCityCode).plotCIGraph();
             updateInfoPanes(routeNetwork, searchComboBox);
         });
 
@@ -253,9 +257,7 @@ public class Main extends Application {
             view.setText(String.valueOf(time));
         }
     }
-    private int getTime() {
-        return time;
-    }
+
     private void setTime(int time, TextField view) {
         if(time >= 0)
         {
@@ -283,9 +285,6 @@ public class Main extends Application {
             CityNode.setLocMovement(true);
         }
 
-        // Calculate Multipaths and routing.
-        routeNetwork.generateMultipathsForTarget(targetCity, routeNetwork);
-
         // Populate the info panes.
         searchComboBox.setValue("");
 
@@ -295,7 +294,7 @@ public class Main extends Application {
         statusPane.setCityEffDis(String.valueOf(routeNetwork.getMinEffDis(sourceCity, targetCity)));
         statusPane.setCityPDP(String.valueOf(routeNetwork.getPDP(sourceCity, targetCity, time)));
         statusPane.setCityRMS(String.valueOf(routeNetwork.getRMS(sourceCity, targetCity, time)));
-        statusPane.setCityCaseIncidence(String.valueOf(targetCity.getCaseIncidenceEqn2(time)));
+        statusPane.setCityCaseIncidence(String.valueOf(targetCity.getCIEqn().get(time)));
 
         // Alter:
         alterPane.setAlterCityName(targetCity.getName());
