@@ -17,7 +17,7 @@ public class CityNode {
     private static CityNode centerTarget; // The node that the eff dis is in ref to.
     private static CityNode selectedTarget; // The currently selected node.
     private static double vectorLengthScalar = 25;
-    private static double vectorLengthAdder = -5;
+    private static double vectorLengthAdder = -5; //-5
     private static Boolean initialised = false;
     private static double mouseInitialX;
     private static double mouseInitialY;
@@ -86,7 +86,7 @@ public class CityNode {
             {
                 if(time < route.getTOAPrediction()) // If the disease has not yet arrived.
                     continue;
-                caseIncidence += getCaseIncidenceEqn2(time - route.getTOAPrediction());
+                caseIncidence += disease.getCaseIncidenceEqn2((int)(time - route.getTOAPrediction()));
             }
             points.add(caseIncidence);
         }
@@ -126,30 +126,6 @@ public class CityNode {
         for(int i = 0; i < returnList.length; i++)
             returnList[i] = routeListSorted.get(i).getTOAPrediction();
         return returnList;
-    }
-
-    // A more thorough equation for calculating case incidence in a population.
-    public double getCaseIncidenceEqn2(double time)
-    {
-        double equateAt; // Current time of the integral loop.
-        double caseIncidence = 0; // Number of active cases.
-        double stepSize = 0.001; // Amount to increase equateAt by, per loop.  Decrease for more accuracy.
-        double a0 = disease.getInitialGrowthRate(); // Initial infection rate.
-        double k = 0.00; // k*a0 is the final infection rate; k is a scalar (0 value is good -> no infections).
-        double q = 0.10; // Rate at which a0 decreases to k*a0.
-        double beta = disease.getRecoveryRate(); // Recovery rate.
-
-        // This loop is equivalent to an approx. of an integral on [0, time] range.
-        for(equateAt = 0; equateAt < time; equateAt += stepSize)
-        {
-            caseIncidence += a0*((1-k)*Math.exp(-q*equateAt) + k)*Math.exp(a0*((1-k)*Math.exp(-q*equateAt) + k) * equateAt - beta*(time - equateAt));
-        }
-
-        // Theta component:
-        if(caseIncidence <= 1) // 1 is the epsilon value, which is a threshold implying eradication of the disease.
-            caseIncidence = 0;
-
-        return caseIncidence; // Cast to int, as it is a number of people.
     }
 
     // Getters and Setters
@@ -356,8 +332,17 @@ public class CityNode {
             if(cityNodeList.get(i).getName().equals(centerTarget.getName())) continue; // Skip the target city.
             if(cityNodeList.get(i).getName().toLowerCase().contains(text.toLowerCase())) // Ignore case.
             {
-                if(cityNodeList.get(i).isARouteTarget())
-                    returnList.add(cityNodeList.get(i).getName());
+                if(cityNodeList.get(i).isARouteTarget()) {
+                    List<Route> routeList = RouteTreeNode.getRouteList(CityNode.getCenterTarget().getName() + cityNodeList.get(i).getName());
+
+                    Route routeSmallest = null;
+                    for(Route route : routeList)
+                        if(routeSmallest == null) routeSmallest = route;
+                        else if(routeSmallest.getEffDis()>route.getEffDis())
+                            routeSmallest = route;
+
+                    returnList.add(cityNodeList.get(i).getName() + " Eff_Dis: " + routeSmallest.getEffDis());
+                }
             }
         }
         return returnList;

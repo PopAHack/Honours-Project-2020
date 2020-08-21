@@ -42,37 +42,44 @@ public class Path extends Route {
     // Calculates NEAP
     private void calcNEAP(){
         // Calc NEAP numerically.
-        double equatAt;
-        double stepSize = 0.001; // Smaller this value, the more accurate.
+        double tau;
+        double stepSize = 0.01; // Smaller this value, the more accurate.
         double Tb = disease.getTbTime(); // Get the time taken to complete a wave and have 0 case incidence.
         double lambda = disease.getMeanGrowthRate(); // Returns mean growth rate over life time of disease.
         double propT1 = 0;
-        double propT2;
 
         // Sum function values for the integral.
-        for(equatAt = 0; equatAt <= Tb; equatAt += stepSize)
+        for(tau = 0; tau <= Tb; tau += stepSize)
         {
-            propT1 += Math.exp(1 - effectiveDistance + lambda * equatAt - (1 / lambda) * Math.exp(1 - effectiveDistance + lambda * equatAt));
+            propT1 += Math.exp(1 - effectiveDistance + lambda * tau - (1 / lambda) * Math.exp(1 - effectiveDistance + lambda * tau));
         }
-        propT2 = 1 / (propT1 * stepSize);
-        NEAPValue = propT1 * propT2 * stepSize;
+
+        NEAPValue = propT1;
     }
 
     private void calcTOA() {
         // Calc time numerically using a Gumbel pdf.
-        double Tb = disease.getTbTime(); // Get the time taken to complete a wave and have 0 case incidence.
-        double lambda = disease.getMeanGrowthRate(); // Returns mean growth rate over life time of disease.
+        double Tb = disease.getTbTime();// disease.getTbTime(); // Get the time taken to complete a wave and have 0 case incidence.
+        double lambda = disease.getMeanGrowthRate();// disease.getMeanGrowthRate(); // Returns mean growth rate over life time of disease.
         double time;
         double stepSize = 0.001;
-        double timeToArrival = 0;
-        double norm_fac;
+        double sum1 = 0;
+        double sum2 = 0;
+        double normFac = 0;
 
         for (time = 0; time < Tb; time += stepSize) {
-            timeToArrival += Math.exp(1 - effectiveDistance + lambda * time - (1 / lambda) * Math.exp(1 - effectiveDistance + lambda * time));
+            sum1 += (Math.exp(1 - effectiveDistance + lambda*time - (1/lambda)*Math.exp(1 - effectiveDistance + lambda*time)));
         }
-        norm_fac = 1 / (timeToArrival * stepSize);
 
-        TOA_Prediction = norm_fac * timeToArrival * stepSize;
+        normFac = 1 / (sum1*stepSize);
+
+        for(time = 0; time < Tb; time += stepSize) {
+            sum2 += time * (Math.exp(1 - effectiveDistance + lambda*time - (1/lambda)*Math.exp(1 - effectiveDistance + lambda*time)));
+        }
+        sum2 *= stepSize;
+
+        TOA_Prediction = sum2 * normFac;
+        System.out.println(TOA_Prediction);
     }
 
     @Override

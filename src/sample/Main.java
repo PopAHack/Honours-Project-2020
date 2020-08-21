@@ -35,10 +35,12 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         // Collect travel data and format it.
-        disease = new Disease("TestDisease", 1.25, 0.95); // Random realistic values for debugging purposes.
+        disease = new Disease("SARS-aprrox.", 2.75, 0.85); // Random realistic values for debugging purposes.
         RouteNetwork routeNetwork = new RouteNetwork();
 
         DistanceDataCollector distanceDataCollector = new DistanceDataCollector(routeNetwork, disease);
+
+        double re1 =disease.getCaseIncidenceEqn2(disease.getTbTime()/2);
 
         // Do some initialising.
         CityNode.initCoords(effMapPane.getCanvas(), routeNetwork);
@@ -227,7 +229,7 @@ public class Main extends Application {
 
         // Implement the search bar and corresponding button.
         searchButton.setOnAction(actionEvent -> {
-            targetedCityCode = searchComboBox.getEditor().textProperty().getValue();
+            targetedCityCode = searchComboBox.getEditor().textProperty().getValue().split(" ")[0];
 
             // Calculate Multipaths and routing.
             routeNetwork.generateMultipathsForTarget(CityNode.findByName(targetedCityCode), routeNetwork);
