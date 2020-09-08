@@ -1,4 +1,4 @@
-package sample;
+package sample.CustomPanes;
 
 import javafx.scene.canvas.Canvas;
 

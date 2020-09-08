@@ -7,7 +7,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import sample.CityNode;
-import sample.ResizableCanvas;
 
 import java.util.List;
 

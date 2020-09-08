@@ -39,7 +39,6 @@ public class CustomAlterPane extends VBox {
         nameRVBox.setSpacing(4);
         nameRVBox.setPadding(new Insets(2,1,2,1));
 
-        //cityPopTF2.setEditable(true);
         resVBox.setSpacing(4);
         resVBox.setPadding(new Insets(2,1,2,1));
 

@@ -5,7 +5,7 @@ import sample.CityNode;
 import java.util.List;
 
 public class MultiPath extends Route {
-    // A multipath is a series (typically 4/5) of CityNodes, linked by existing paths.
+    // A multipath is a series (typically 3-6) of CityNodes, linked by existing paths.
 
     // Global vars
     private CityNode sourceCity; // Start city.

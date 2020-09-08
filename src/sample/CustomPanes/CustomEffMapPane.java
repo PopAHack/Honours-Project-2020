@@ -7,7 +7,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import sample.CityNode;
-import sample.ResizableCanvas;
 
 public class CustomEffMapPane extends Pane {
     // Global vars.

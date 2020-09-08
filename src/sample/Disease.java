@@ -80,8 +80,4 @@ public class Disease {
     public double getRecoveryRate() {
         return recoveryRate;
     }
-
-    public double getQ() { return this.q; }
-
-    public double getK() { return this.k; }
 }

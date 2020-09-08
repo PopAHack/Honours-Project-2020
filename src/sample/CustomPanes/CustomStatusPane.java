@@ -20,16 +20,8 @@ public class CustomStatusPane extends VBox {
     VBox popVBox = new VBox(cityPopLabel1, cityPopTF2);
     Label minEffDisLabel1 = new Label("Minimum Effective Distance:");
     TextField minEffDisTF2 = new TextField("No city selected");
-
     VBox minEffDisVBox = new VBox(minEffDisLabel1, minEffDisTF2);
-    Label PDPLabel1 = new Label("PDP Value:");
-    TextField PDPTF2 = new TextField("No city selected");
 
-    VBox PDPVBox = new VBox(PDPLabel1, PDPTF2);
-    Label RMSLabel1 = new Label("RMS Value:");
-    TextField RMSTF2 = new TextField("No city selected");
-
-    VBox RMSVBox = new VBox(RMSLabel1, RMSTF2);
     Label caseIncidenceLabel1 = new Label("Case Incidence Value:");
     TextField caseIncidenceTF2 = new TextField("No city selected");
 
@@ -64,22 +56,12 @@ public class CustomStatusPane extends VBox {
         minEffDisVBox.setSpacing(4);
         minEffDisVBox.setPadding(new Insets(2,1,2,1));
 
-        PDPTF2.setEditable(false);
-
-        PDPVBox.setSpacing(4);
-        PDPVBox.setPadding(new Insets(2,1,2,1));
-
-        RMSTF2.setEditable(false);
-
-        RMSVBox.setSpacing(4);
-        RMSVBox.setPadding(new Insets(2,1,2,1));
-
         caseIncidenceTF2.setEditable(false);
 
         caseIncidenceVBox.setSpacing(4);
         caseIncidenceVBox.setPadding(new Insets(2,1,2,1));
 
-        this.getChildren().addAll(statusLabel, nameVBox, popVBox, minEffDisVBox, PDPVBox, RMSVBox, caseIncidenceVBox);
+        this.getChildren().addAll(statusLabel, nameVBox, popVBox, minEffDisVBox, caseIncidenceVBox);
         this.setPrefWidth(300);
     }
 
@@ -95,14 +77,6 @@ public class CustomStatusPane extends VBox {
     public void setCityEffDis(String value)
     {
         minEffDisTF2.setText(value);
-    }
-    public void setCityPDP(String value)
-    {
-        PDPTF2.setText(value);
-    }
-    public void setCityRMS(String value)
-    {
-        RMSTF2.setText(value);
     }
     public void setCityCaseIncidence(String value)
     {

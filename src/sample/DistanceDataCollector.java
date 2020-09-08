@@ -3,8 +3,6 @@ package sample;
 import javafx.scene.paint.Color;
 import sample.Route.Path;
 import sample.RouteNetwork.RouteNetwork;
-
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;

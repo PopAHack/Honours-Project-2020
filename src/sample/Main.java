@@ -294,8 +294,6 @@ public class Main extends Application {
         statusPane.setCityName(targetCity.getName());
         statusPane.setCityPop(String.valueOf(targetCity.getCityPopulation()));
         statusPane.setCityEffDis(String.valueOf(routeNetwork.getMinEffDis(sourceCity, targetCity)));
-        statusPane.setCityPDP(String.valueOf(routeNetwork.getPDP(sourceCity, targetCity, time)));
-        statusPane.setCityRMS(String.valueOf(routeNetwork.getRMS(sourceCity, targetCity, time)));
         statusPane.setCityCaseIncidence(String.valueOf(targetCity.getCIEqn().get(time)));
 
         // Alter:

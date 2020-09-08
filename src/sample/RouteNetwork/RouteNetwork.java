@@ -49,7 +49,6 @@ public class RouteNetwork {
 
     // Handles the search for each route leaving the source city.
     public List<Route> getRoutesFrom(CityNode sourceCity) {
-        List<Route> routeList = new ArrayList<>();
         return RouteTreeNode.getTargetsFromSource(sourceCity);
     }
 
@@ -182,32 +181,6 @@ public class RouteNetwork {
             return minEffDis;
         } catch (Exception ex) {
             System.out.println("Error in getMaxEffDis()");
-            return -1;
-        }
-    }
-
-    // Get the RMS between many routes to the target city.
-    // TODO Not working, needs fixing.
-    public double getRMS(CityNode sourceCity, CityNode targetCity, int time) {
-        return -1;
-    }
-
-    // Returns the PDP between many routes to target city at a particular time.
-    public double getPDP(CityNode sourceCity, CityNode targetCity, int time) {
-        double PDP = 0;
-        List<Route> routeList = RouteTreeNode.getRouteList(sourceCity.getName() + targetCity.getName());
-        if (routeList == null) return -1; // Error handling, no routes between cities.
-        try {
-            // Calculate PDP:
-            for (Route route : routeList) { // For each path.
-                double predictedDay = route.getTOAPrediction(); // Get the expected time to arrival.
-                if (time == (int) predictedDay) { // If the current time is equal to the estimated day of arrival.
-                    PDP = route.getNEAP(); // Then the PDP is equal to the NEAP value at this time.
-                }
-            }
-            return PDP;
-        } catch (Exception ex) {
-            System.out.println("Math error during PDP calc.");
             return -1;
         }
     }
