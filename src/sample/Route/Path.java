@@ -6,7 +6,7 @@ import sample.Disease;
 
 public class Path extends Route {
 
-    // Global vars
+    // Global vars.
     private CityNode sourceCity; // Start city.
     private CityNode targetCity; // End city.
     private double transportDistance; // Transport distance between cities.
@@ -16,7 +16,7 @@ public class Path extends Route {
     private double fluxFraction;
     private double TOA_Prediction = -1;
 
-    // Constructor
+    // Constructor.
     public Path(CityNode sourceCity, CityNode targetCity, double initialTransportDistance, Disease disease) {
         this.disease = disease;
         this.sourceCity = sourceCity;
@@ -39,7 +39,7 @@ public class Path extends Route {
         }
     }
 
-    // Calculates NEAP
+    // Calculates NEAP.
     private void calcNEAP(){
         // Calc NEAP numerically.
         double tau;
@@ -59,8 +59,8 @@ public class Path extends Route {
 
     private void calcTOA() {
         // Calc time numerically using a Gumbel pdf.
-        double Tb = disease.getTbTime();// disease.getTbTime(); // Get the time taken to complete a wave and have 0 case incidence.
-        double lambda = disease.getMeanGrowthRate();// disease.getMeanGrowthRate(); // Returns mean growth rate over life time of disease.
+        double Tb = disease.getTbTime(); // Get the time taken to complete a wave and have 0 case incidence.
+        double lambda = disease.getMeanGrowthRate(); // Returns mean growth rate over life time of disease.
         double time;
         double stepSize = 0.001;
         double sum1 = 0;

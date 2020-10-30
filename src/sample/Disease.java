@@ -46,6 +46,7 @@ public class Disease {
         double currentAofT = 0;
         double divideBy = 0;
 
+        // Find the average value over the Tb time.
         for(time = 0; time < Tb; time+=stepSize)
         {
             currentAofT += a0*((1-k)*Math.exp(-1*q*time) + k);
@@ -53,23 +54,22 @@ public class Disease {
         }
         double meanAlpha = currentAofT/divideBy;
         return meanAlpha;
-
     }
 
     // Runs through the case incidence equation, and finds the time (day) that the case incidence is below a threshold.
     public int getTbTime()
     {
-        int time = 1;
-        int incrementNum = 1;
-        double threshold = 1;
-        double currentCI;
+        int time = 1; // Initital day.
+        int incrementNum = 1; // How many days to increment by each cycle.
+        double threshold = 1; // Epsilon.
+        double currentCI; // The case incidence value at the variable time.
         do {
             currentCI = getCaseIncidenceEqn2(time);
             time += incrementNum;
         }
-        while(currentCI > threshold);
+        while(currentCI > threshold); // While we have not found the Tb value.
         time--;
-        return time;
+        return time; // This is the Tb value (number of days the case incidence is above the threshold).
     }
 
     // Getters and Setters.

@@ -16,8 +16,8 @@ public class CityNode {
     private static List<CityNode> cityNodeList = new ArrayList<>();
     private static CityNode centerTarget; // The node that the eff dis is in ref to.
     private static CityNode selectedTarget; // The currently selected node.
-    private static double vectorLengthScalar = 25;
-    private static double vectorLengthAdder = -5; //-5
+    private static double vectorLengthScalar = 25; // Recommended: 25
+    private static double vectorLengthAdder = -5; // Recommended: -5
     private static Boolean initialised = false;
     private static double mouseInitialX;
     private static double mouseInitialY;
@@ -273,23 +273,23 @@ public class CityNode {
             if(r < 0) continue;
 
             // Conversion from polar to Cartesian coordinates.
-            y = Math.sqrt(((r*r)*(Math.tan(theta)*Math.tan(theta))) / (1 + (Math.tan(theta)*Math.tan(theta))));
-            x = Math.sqrt((r*r) - (y*y));
+            y = r*Math.cos(theta);
+            x = r*Math.sin(theta);
 
-            // Adjust positives and negatives according to the angle.
-            if(theta < 90) {
-                y *= -1;
-                x *= 1;
-            }else if(theta < 180) {
-                y *= -1;
-                x *= -1;
-            }else if(theta < 270) {
-                y *= 1;
-                x *= -1;
-            }else if(theta <= 360) {
-                y *= 1;
-                x *= 1;
-            }
+//            // Adjust positives and negatives according to the angle.
+//            if(theta < 90) {
+//                y *= -1;
+//                x *= 1;
+//            }else if(theta < 180) {
+//                y *= -1;
+//                x *= -1;
+//            }else if(theta < 270) {
+//                y *= 1;
+//                x *= -1;
+//            }else if(theta <= 360) {
+//                y *= 1;
+//                x *= 1;
+//            }
 
             // Slide over, so it orbits the center node.
             x += centerTargetX;

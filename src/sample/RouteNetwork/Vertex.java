@@ -5,6 +5,8 @@ import sample.Route.Path;
 import sample.Route.Route;
 import java.util.List;
 
+// This class is used only in the Dijkstras shortest path algorithm, implemented in the RouteNetwork class.
+
 public class Vertex {
     // Global Vars
     private double distance;
